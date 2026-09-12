@@ -39,6 +39,11 @@ const $ = (id) => document.getElementById(id);
 const canvas = $('tree');
 const ctx    = canvas.getContext('2d');
 const wishEl = $('wish');
+const cakeWrapper = $('cakeWrapper');
+const cakeCard    = $('cakeCard');
+const cakeToast   = $('cakeToast');
+const cakeConfetti= $('cakeConfetti');
+let cakeBlown = false;
 
 const hero       = $('hero');
 const eyebrow    = $('eyebrow');
@@ -59,14 +64,66 @@ const serving = $('serving');
 const flood   = $('flood');
 const field   = $('field');
 const camera  = $('camera');
-const fgrid   = $('fgrid');
+const stardustField = $('stardustField');
+const wishSparkles  = $('wishSparkles');
 const kEyebrow= $('kEyebrow');
 const kSub    = $('kSub');
 const barTop  = $('barTop');
 const barBot  = $('barBot');
 const uline   = $('uline').querySelector('.uline__path');
+const ulineSpark = $('ulineSpark');
 const bloom   = $('bloom');
 const replay  = $('replay');
+const toastMemoriesBtn = $('toastMemoriesBtn');
+const galleryModal     = $('galleryModal');
+const galleryBackdrop  = $('galleryBackdrop');
+const galleryClose     = $('galleryClose');
+const polaroidCard     = $('polaroidCard');
+const polaroidImg      = $('polaroidImg');
+const polaroidCaption  = $('polaroidCaption');
+const polaroidSubnote  = $('polaroidSubnote');
+const polaroidStamp    = $('polaroidStamp');
+const polaroidLikeBtn  = $('polaroidLikeBtn');
+const polaroidLikeCount= $('polaroidLikeCount');
+const polaroidBursts   = $('polaroidBursts');
+const polaroidGlare    = $('polaroidGlare');
+const polaroidWrapper  = $('polaroidWrapper');
+const galleryPrev      = $('galleryPrev');
+const galleryNext      = $('galleryNext');
+const galleryDots      = $('galleryDots');
+let curPhotoIdx        = 0;
+let likeCounts         = [1, 1, 1, 1];
+
+const PHOTOS = [
+  {
+    src: '/photos/photo2.jpg',
+    caption: 'Dancing with the ocean breeze \uD83C\uDF0A\uD83C\uDF38',
+    subnote: 'Memories by the Shore \u2022 Pure Bliss',
+    stamp: '\uD83C\uDF3B Seaside Sunshine',
+    position: 'center 15%'
+  },
+  {
+    src: '/photos/photo3.jpg',
+    caption: 'Timeless grace & joyful heart \uD83C\uDFDB\uFE0F\uD83D\uDC96',
+    subnote: 'Grace in every smile \u2022 Forever Loved',
+    stamp: '\u2728 Soulful & Serene',
+    position: 'center 15%'
+  },
+  {
+    src: '/photos/photo4.jpg',
+    caption: 'Radiant elegance & golden moments \uD83C\uDF3B\u2728',
+    subnote: 'Traditional Beauty \u2022 Simply Magical',
+    stamp: '\uD83D\uDC51 Golden Hour',
+    position: 'center 15%'
+  },
+  {
+    src: '/photos/photo6.jpg',
+    caption: 'Blooming bright amidst golden sunflowers \uD83C\uDF3B\u2728',
+    subnote: 'Sunflower Meadow \u2022 Pure Sunshine Dava Sri',
+    stamp: '\uD83C\uDF3B Sunflower Queen Dava Sri',
+    position: 'center 30%'
+  }
+];
 
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const isRecord     = new URLSearchParams(location.search).has('record');
@@ -190,9 +247,127 @@ function makeSparkle(){
   return cv;
 }
 
+function makeSunflowerHead(soft){
+  const S = SS;
+  const cv = document.createElement('canvas'); cv.width = cv.height = S;
+  const c = cv.getContext('2d');
+  const mid = S / 2;
+  const rDisc = S * 0.17;
+  const rPetalOuter = S * 0.44;
+  const rPetalInner = S * 0.41;
+
+  c.save();
+  c.shadowColor = 'rgba(120, 45, 10, 0.35)';
+  c.shadowBlur = S * 0.08;
+  c.shadowOffsetY = S * 0.04;
+
+  // 1. Back row of petals (16 petals)
+  const numPetals = 16;
+  for (let i = 0; i < numPetals; i++){
+    const ang = (i / numPetals) * Math.PI * 2;
+    c.save();
+    c.translate(mid, mid);
+    c.rotate(ang);
+    c.beginPath();
+    c.moveTo(0, rDisc * 0.75);
+    c.quadraticCurveTo(-S * 0.075, (rDisc + rPetalOuter) * 0.5, 0, rPetalOuter);
+    c.quadraticCurveTo(S * 0.075, (rDisc + rPetalOuter) * 0.5, 0, rDisc * 0.75);
+    const g = c.createLinearGradient(0, rDisc * 0.8, 0, rPetalOuter);
+    g.addColorStop(0, '#f59e0b');
+    g.addColorStop(0.6, '#fbb03b');
+    g.addColorStop(1, '#ffd166');
+    c.fillStyle = g;
+    c.fill();
+    c.restore();
+  }
+  c.restore();
+
+  // 2. Front row of petals (16 petals, offset)
+  for (let i = 0; i < numPetals; i++){
+    const ang = (i / numPetals) * Math.PI * 2 + Math.PI / numPetals;
+    c.save();
+    c.translate(mid, mid);
+    c.rotate(ang);
+    c.beginPath();
+    c.moveTo(0, rDisc * 0.9);
+    c.quadraticCurveTo(-S * 0.07, (rDisc + rPetalInner) * 0.52, 0, rPetalInner);
+    c.quadraticCurveTo(S * 0.07, (rDisc + rPetalInner) * 0.52, 0, rDisc * 0.9);
+    const g = c.createLinearGradient(0, rDisc * 0.9, 0, rPetalInner);
+    g.addColorStop(0, '#e67e22');
+    g.addColorStop(0.45, '#f59e0b');
+    g.addColorStop(0.85, '#ffdd53');
+    g.addColorStop(1, '#fff1a8');
+    c.fillStyle = g;
+    c.fill();
+    c.restore();
+  }
+
+  // 3. Center seed disc
+  const dg = c.createRadialGradient(mid - rDisc * 0.2, mid - rDisc * 0.2, rDisc * 0.05, mid, mid, rDisc);
+  dg.addColorStop(0, '#2e1507');
+  dg.addColorStop(0.5, '#451d08');
+  dg.addColorStop(0.85, '#78350f');
+  dg.addColorStop(1, '#b45309');
+  c.beginPath();
+  c.arc(mid, mid, rDisc, 0, Math.PI * 2);
+  c.fillStyle = dg;
+  c.fill();
+
+  // 4. Florets / seed ring texture
+  c.save();
+  for (let ring = 1; ring <= 3; ring++){
+    const dots = ring * 10;
+    const rad = rDisc * (0.35 + ring * 0.18);
+    for (let d = 0; d < dots; d++){
+      const da = (d / dots) * Math.PI * 2 + ring * 0.5;
+      const dx = mid + Math.cos(da) * rad;
+      const dy = mid + Math.sin(da) * rad;
+      c.beginPath();
+      c.arc(dx, dy, S * 0.009, 0, Math.PI * 2);
+      c.fillStyle = ring === 3 ? 'rgba(255, 200, 70, 0.7)' : 'rgba(217, 119, 6, 0.5)';
+      c.fill();
+    }
+  }
+  c.restore();
+
+  if (!soft) return cv;
+
+  const cv2 = document.createElement('canvas'); cv2.width = cv2.height = S;
+  const c2 = cv2.getContext('2d');
+  c2.filter = 'blur(2.5px)'; c2.drawImage(cv, 0, 0); c2.filter = 'none';
+  c2.globalCompositeOperation = 'source-atop';
+  c2.globalAlpha = 0.35; c2.fillStyle = '#fff4db'; c2.fillRect(0, 0, S, S);
+  return cv2;
+}
+
+function makeSunflowerPetal(){
+  const S = Math.round(SS * 0.6);
+  const cv = document.createElement('canvas'); cv.width = cv.height = S;
+  const c = cv.getContext('2d');
+  const mid = S / 2;
+  c.save();
+  c.shadowColor = 'rgba(160, 60, 20, 0.3)';
+  c.shadowBlur = 6;
+  c.beginPath();
+  c.moveTo(mid, S * 0.85);
+  c.quadraticCurveTo(S * 0.15, S * 0.45, mid, S * 0.1);
+  c.quadraticCurveTo(S * 0.85, S * 0.45, mid, S * 0.85);
+  const g = c.createLinearGradient(mid, S * 0.85, mid, S * 0.1);
+  g.addColorStop(0, '#f59e0b');
+  g.addColorStop(0.55, '#fbbf24');
+  g.addColorStop(1, '#fef08a');
+  c.fillStyle = g;
+  c.fill();
+  c.restore();
+  return cv;
+}
+
 let SPR = { crisp: [], soft: [] }, BOKEH = [], SPARKLE = null;
+let SUNFLOWER = { crisp: null, soft: null }, SUNFLOWER_PETAL = null;
 function buildSprites(){
   SPR = { crisp: BLOSSOM.map((b) => makeBlossom(b, false)), soft: BLOSSOM.map((b) => makeBlossom(b, true)) };
+  SUNFLOWER = { crisp: makeSunflowerHead(false), soft: makeSunflowerHead(true) };
+  SUNFLOWER_PETAL = makeSunflowerPetal();
   BOKEH = [makeBokeh('255,224,188'), makeBokeh('255,196,214'), makeBokeh('255,238,210')];
   SPARKLE = makeSparkle();
 }
@@ -230,7 +405,7 @@ function pointInPoly(x, y){
 
 let W = 0, H = 0, dpr = 1;
 let cx = 0, cy = 0, rx = 0, ry = 0, groundY = 0;
-let branches = [], hearts = [], petals = [], rested = [], orbs = [], floaters = [], twinkles = [];
+let branches = [], hearts = [], petals = [], rested = [], orbs = [], floaters = [], twinkles = [], sunflowers = [];
 let bgGrad = null, glowGrad = null, groundGrad = null;
 
 const quad = (b, t) => { const m = 1 - t, a = m * m, k = 2 * m * t, d = t * t; return { x: a * b.x1 + k * b.cx + d * b.x2, y: a * b.y1 + k * b.cy + d * b.y2 }; };
@@ -243,7 +418,7 @@ function barkGrad(x1, y1, x2, y2, depth){
 }
 
 function buildScene(){
-  branches = []; hearts = []; petals = []; rested = []; twinkles = []; orbs = []; floaters = [];
+  branches = []; hearts = []; petals = []; rested = []; twinkles = []; orbs = []; floaters = []; sunflowers = [];
   buildHeartPoly();
 
   const wide = W / H > 1.2;
@@ -335,6 +510,91 @@ function buildScene(){
     hearts.push({ x, y, idx: (Math.random() * BLOSSOM.length) | 0, soft, box: baseBox * (soft ? rand(0.6, 0.85) : rand(0.78, 1.12)), rot: rand(-0.55, 0.55), sway: rand(0, 6.28), t0 });
   }
   hearts.sort((a, b) => (a.soft === b.soft ? a.y - b.y : a.soft ? -1 : 1));
+
+  // --- Meadow Sunflowers (Lush, vibrant golden meadow) ---
+  sunflowers = [];
+  const sunflowerCount = Math.round(clamp(W / 36, 28, 48));
+  for (let i = 0; i < sunflowerCount; i++){
+    let sx;
+    if (i % 3 === 0){
+      sx = rand(W * 0.02, W * 0.40); // Left meadow framing Dava Sri's wish
+    } else if (i % 3 === 1){
+      sx = rand(W * 0.60, W * 0.98); // Right meadow framing celebration cake
+    } else {
+      sx = rand(W * 0.35, W * 0.65); // Center base of heart tree
+    }
+    const sy = groundY + rand(-3, H * 0.05);
+    const height = rand(H * 0.13, H * 0.27);
+    const depth = Math.random();
+    const headSize = lerp(baseBox * 0.92, baseBox * 1.62, depth);
+    const lean = rand(-1, 1) * 20;
+    const t0 = T.bloomT0 + rand(0, 1.2);
+
+    sunflowers.push({
+      rootX: sx, rootY: sy,
+      height, lean, depth,
+      headSize,
+      swaySpeed: rand(1.1, 2.2),
+      swayAmp: rand(0.04, 0.08),
+      phase: rand(0, 6.28),
+      t0,
+      soft: depth < 0.30,
+      leaves: [
+        { pos: rand(0.25, 0.42), side: -1, len: rand(16, 28), rot: rand(-0.4, -0.2) },
+        { pos: rand(0.50, 0.70), side: 1, len: rand(16, 28), rot: rand(0.2, 0.4) }
+      ]
+    });
+  }
+  sunflowers.sort((a, b) => a.depth - b.depth);
+}
+
+function drawSunflowers(t){
+  for (const s of sunflowers){
+    const p = clamp01((t - s.t0) / 0.85);
+    if (p <= 0) continue;
+    const scale = easeOutBack(p);
+    const sway = Math.sin(t * s.swaySpeed + s.phase) * s.swayAmp;
+    const curH = s.height * scale;
+    const hx = s.rootX + (s.lean + Math.sin(sway) * 28) * scale;
+    const hy = s.rootY - curH * Math.cos(sway);
+
+    // Stem
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(s.rootX, s.rootY);
+    const mx = (s.rootX + hx) / 2 + s.lean * 0.3 * scale;
+    const my = (s.rootY + hy) / 2;
+    ctx.quadraticCurveTo(mx, my, hx, hy);
+    const stemGrad = ctx.createLinearGradient(s.rootX, s.rootY, hx, hy);
+    stemGrad.addColorStop(0, '#2d5a27');
+    stemGrad.addColorStop(1, '#538d38');
+    ctx.strokeStyle = stemGrad;
+    ctx.lineWidth = Math.max(2, 4.5 * scale);
+    ctx.lineCap = 'round';
+    ctx.stroke();
+
+    // Leaves
+    for (const lf of s.leaves){
+      const lp = lf.pos;
+      const lx = lerp(s.rootX, hx, lp);
+      const ly = lerp(s.rootY, hy, lp);
+      ctx.save();
+      ctx.translate(lx, ly);
+      ctx.rotate(sway + lf.rot + (lf.side < 0 ? -0.4 : 0.4));
+      ctx.beginPath();
+      ctx.ellipse(lf.side * lf.len * 0.5 * scale, 0, lf.len * 0.5 * scale, lf.len * 0.22 * scale, 0, 0, Math.PI * 2);
+      ctx.fillStyle = '#416d2f';
+      ctx.fill();
+      ctx.restore();
+    }
+    ctx.restore();
+
+    // Sunflower Bloom Head
+    const sprite = s.soft ? SUNFLOWER.soft : SUNFLOWER.crisp;
+    if (sprite){
+      drawSprite(sprite, hx, hy, s.headSize * scale, sway * 1.6, clamp01(p * 2));
+    }
+  }
 }
 
 function drawBackground(){
@@ -453,9 +713,30 @@ function updateTwinkles(t, dt){
 }
 
 function spawnPetal(){
+  const isSunflower = Math.random() < 0.55;
+  if (isSunflower && SUNFLOWER_PETAL){
+    const sx = rand(W * 0.05, W * 0.95);
+    const sy = rand(H * 0.10, H * 0.45);
+    petals.push({
+      x: sx, y: sy,
+      vy: rand(16, 34), vx: rand(-12, 12),
+      sway: rand(0.7, 1.5), phase: rand(0, 6.28),
+      box: rand(18, 30), isSunflower: true,
+      rot: rand(0, 6.28), vrot: rand(-1.6, 1.6),
+      age: 0, land: groundY + rand(-6, H * 0.05)
+    });
+    return;
+  }
   const h = hearts[(Math.random() * hearts.length) | 0];
   if (!h) return;
-  petals.push({ x: h.x + rand(-8, 8), y: h.y + rand(-8, 8), vy: rand(14, 30), vx: rand(-8, 8), sway: rand(0.6, 1.4), phase: rand(0, 6.28), box: h.box * rand(0.34, 0.6), idx: h.idx, rot: rand(0, 6.28), vrot: rand(-1.4, 1.4), age: 0, land: groundY + rand(-6, H * 0.05) });
+  petals.push({
+    x: h.x + rand(-8, 8), y: h.y + rand(-8, 8),
+    vy: rand(14, 30), vx: rand(-8, 8),
+    sway: rand(0.6, 1.4), phase: rand(0, 6.28),
+    box: h.box * rand(0.34, 0.6), idx: h.idx,
+    rot: rand(0, 6.28), vrot: rand(-1.4, 1.4),
+    age: 0, land: groundY + rand(-6, H * 0.05)
+  });
 }
 function drawPetals(t, dt){
   for (let i = petals.length - 1; i >= 0; i--){
@@ -463,19 +744,359 @@ function drawPetals(t, dt){
     p.x += (p.vx + Math.sin(t * p.sway + p.phase) * 16) * dt;
     p.y += p.vy * dt; p.rot += p.vrot * dt;
     if (p.y >= p.land){
-      rested.push({ x: clamp(p.x, 6, W - 6), y: p.land, box: p.box, idx: p.idx, rot: p.rot, a: rand(0.7, 0.95) });
-      if (rested.length > 90) rested.shift();
+      rested.push({
+        x: clamp(p.x, 6, W - 6), y: p.land, box: p.box,
+        idx: p.idx, isSunflower: p.isSunflower,
+        rot: p.rot, a: rand(0.7, 0.95)
+      });
+      if (rested.length > 115) rested.shift();
       petals.splice(i, 1); continue;
     }
     const a = p.age < 0.3 ? p.age / 0.3 : 1;
-    drawSprite(SPR.crisp[p.idx], p.x, p.y, p.box, p.rot, a);
+    if (p.isSunflower && SUNFLOWER_PETAL){
+      drawSprite(SUNFLOWER_PETAL, p.x, p.y, p.box, p.rot, a);
+    } else {
+      drawSprite(SPR.crisp[p.idx], p.x, p.y, p.box, p.rot, a);
+    }
   }
 }
 function drawRested(){
-  for (const r of rested) drawSprite(SPR.crisp[r.idx], r.x, r.y, r.box, r.rot, r.a);
+  for (const r of rested){
+    if (r.isSunflower && SUNFLOWER_PETAL){
+      drawSprite(SUNFLOWER_PETAL, r.x, r.y, r.box, r.rot, r.a);
+    } else {
+      drawSprite(SPR.crisp[r.idx], r.x, r.y, r.box, r.rot, r.a);
+    }
+  }
 }
 
 function showWish(on){ wishEl.classList.toggle('is-in', on); }
+
+function showCake(on){
+  if (cakeWrapper) cakeWrapper.classList.toggle('is-in', on);
+}
+
+function resetCake(){
+  cakeBlown = false;
+  if (cakeCard){
+    cakeCard.classList.remove('is-blown');
+    cakeCard.setAttribute('aria-label', 'Interactive Birthday Cake. Click to blow out the candles and make a wish!');
+  }
+  if (cakeConfetti) cakeConfetti.innerHTML = '';
+}
+
+function spawnConfetti(){
+  if (!cakeConfetti || !cakeCard) return;
+  cakeConfetti.innerHTML = '';
+  const rect = cakeCard.getBoundingClientRect();
+  const originX = rect.left + rect.width / 2;
+  const originY = rect.top + rect.height * 0.35;
+
+  const colors = ['#ffb703', '#fb8500', '#e63946', '#ff006e', '#ffd166', '#ffffff', '#2a9d8f'];
+  const count = 45;
+
+  for (let i = 0; i < count; i++){
+    const p = document.createElement('span');
+    p.className = 'confetti-p';
+    const size = rand(5, 10);
+    p.style.width = `${size}px`;
+    p.style.height = `${size * rand(0.6, 1.4)}px`;
+    p.style.background = pick(colors);
+    p.style.left = `${originX}px`;
+    p.style.top = `${originY}px`;
+    cakeConfetti.appendChild(p);
+
+    const angle = rand(-Math.PI * 0.95, -Math.PI * 0.05);
+    const dist = rand(70, 240);
+    const targetX = Math.cos(angle) * dist + rand(-30, 30);
+    const targetY = Math.sin(angle) * dist + rand(20, 50);
+    const duration = rand(1.2, 2.0);
+
+    gsap.to(p, {
+      x: targetX,
+      y: targetY,
+      rotation: rand(-720, 720),
+      duration,
+      ease: 'power2.out',
+      onComplete: () => p.remove()
+    });
+    gsap.to(p, {
+      y: `+=${rand(80, 150)}`,
+      opacity: 0,
+      duration: duration * 0.6,
+      delay: duration * 0.4,
+      ease: 'power1.in'
+    });
+  }
+
+  // Floating celebration sunflowers and cakes burst!
+  const celebrationIcons = ['🌻', '🎂', '🍰', '🧁', '✨', '🌻', '🎂', '💖', '🎉'];
+  const iconCount = 26;
+  for (let i = 0; i < iconCount; i++){
+    const span = document.createElement('span');
+    span.className = 'cake-burst-icon';
+    span.textContent = pick(celebrationIcons);
+    span.style.left = `${originX}px`;
+    span.style.top = `${originY}px`;
+    cakeConfetti.appendChild(span);
+
+    const angle = rand(-Math.PI * 0.98, -Math.PI * 0.02);
+    const dist = rand(80, 320);
+    const targetX = Math.cos(angle) * dist + rand(-35, 35);
+    const targetY = Math.sin(angle) * dist - rand(30, 90);
+    const duration = rand(1.5, 2.6);
+
+    gsap.to(span, {
+      x: targetX,
+      y: targetY,
+      rotation: rand(-45, 45),
+      scale: rand(1.1, 1.8),
+      duration,
+      ease: 'power2.out',
+      onComplete: () => span.remove()
+    });
+    gsap.to(span, {
+      y: `+=${rand(60, 120)}`,
+      opacity: 0,
+      duration: duration * 0.55,
+      delay: duration * 0.45,
+      ease: 'power1.in'
+    });
+  }
+}
+
+function blowCandles(){
+  if (cakeBlown){
+    openGallery(0);
+    return;
+  }
+  cakeBlown = true;
+  cue('candles');
+  cakeCard.classList.add('is-blown');
+  cakeCard.setAttribute('aria-label', 'Candles blown out! Click to view memories.');
+  spawnConfetti();
+  launchMidnightFireworks();
+}
+
+function setupCake(){
+  if (!cakeCard) return;
+  cakeCard.addEventListener('click', blowCandles);
+  cakeCard.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' '){
+      e.preventDefault();
+      blowCandles();
+    }
+  });
+
+  const tMem = $('toastMemoriesBtn');
+  if (tMem) tMem.addEventListener('click', (e) => { e.stopPropagation(); openGallery(0); });
+  const tLan = $('toastLanternBtn');
+  if (tLan) tLan.addEventListener('click', (e) => { e.stopPropagation(); openLanternModal(); });
+  const tLet = $('toastLetterBtn');
+  if (tLet) tLet.addEventListener('click', (e) => { e.stopPropagation(); openLetterModal(); });
+}
+
+/* ============================================================
+   PHOTO MEMORIES ALBUM (Enhanced Skeuomorphic & Interactive)
+   ============================================================ */
+function renderPhoto(idx, direction = 0){
+  if (!polaroidImg) return;
+  curPhotoIdx = (idx + PHOTOS.length) % PHOTOS.length;
+  const p = PHOTOS[curPhotoIdx];
+
+  const tilt = (curPhotoIdx % 2 === 0 ? 1 : -1) * rand(1.2, 2.5);
+
+  if (direction !== 0){
+    gsap.to(polaroidCard, {
+      x: direction * 55,
+      rotation: tilt + direction * 5,
+      opacity: 0.35,
+      scale: 0.94,
+      duration: 0.16,
+      ease: 'power2.in',
+      onComplete: () => {
+        polaroidImg.src = p.src;
+        polaroidImg.style.objectPosition = p.position || 'center 15%';
+        polaroidCaption.textContent = p.caption;
+        if (polaroidSubnote) polaroidSubnote.textContent = p.subnote;
+        if (polaroidStamp) polaroidStamp.textContent = p.stamp;
+        if (polaroidLikeCount) polaroidLikeCount.textContent = likeCounts[curPhotoIdx];
+
+        gsap.fromTo(polaroidCard, 
+          { x: -direction * 45, rotation: tilt - direction * 3, opacity: 0.5, scale: 0.95 },
+          { x: 0, rotation: tilt, opacity: 1, scale: 1, duration: 0.32, ease: 'back.out(1.5)' }
+        );
+      }
+    });
+  } else {
+    polaroidImg.src = p.src;
+    polaroidImg.style.objectPosition = p.position || 'center 15%';
+    polaroidCaption.textContent = p.caption;
+    if (polaroidSubnote) polaroidSubnote.textContent = p.subnote;
+    if (polaroidStamp) polaroidStamp.textContent = p.stamp;
+    if (polaroidLikeCount) polaroidLikeCount.textContent = likeCounts[curPhotoIdx];
+    gsap.to(polaroidCard, { x: 0, rotation: tilt, duration: 0.3, ease: 'power2.out' });
+  }
+
+  if (galleryDots){
+    const dots = galleryDots.querySelectorAll('.gallery-dot');
+    dots.forEach((d, i) => d.classList.toggle('is-active', i === curPhotoIdx));
+  }
+}
+
+function popHeartReaction(e){
+  if (e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+  likeCounts[curPhotoIdx]++;
+  if (polaroidLikeCount) polaroidLikeCount.textContent = likeCounts[curPhotoIdx];
+
+  if (polaroidLikeBtn){
+    gsap.fromTo(polaroidLikeBtn, { scale: 0.8 }, { scale: 1.18, duration: 0.14, yoyo: true, repeat: 1, ease: 'power2.out' });
+  }
+
+  if (polaroidBursts && polaroidLikeBtn){
+    const rect = polaroidLikeBtn.getBoundingClientRect();
+    const wrapRect = polaroidWrapper.getBoundingClientRect();
+    const ox = rect.left - wrapRect.left + rect.width / 2;
+    const oy = rect.top - wrapRect.top;
+
+    const icons = ['💖', '✨', '🌻', '🎂', '🌸', '🍰', '💕', '⭐', '🥰'];
+    for (let i = 0; i < 7; i++){
+      const span = document.createElement('span');
+      span.className = 'burst-heart-p';
+      span.textContent = pick(icons);
+      span.style.left = `${ox}px`;
+      span.style.top = `${oy}px`;
+      polaroidBursts.appendChild(span);
+
+      const ang = rand(-Math.PI * 0.9, -Math.PI * 0.1);
+      const dist = rand(50, 150);
+      gsap.to(span, {
+        x: Math.cos(ang) * dist + rand(-25, 25),
+        y: Math.sin(ang) * dist - rand(15, 45),
+        rotation: rand(-35, 35),
+        scale: rand(0.9, 1.4),
+        opacity: 0,
+        duration: rand(1.1, 1.7),
+        ease: 'power2.out',
+        onComplete: () => span.remove()
+      });
+    }
+  }
+}
+
+function setupParallaxTilt(){
+  if (!polaroidWrapper || !polaroidCard) return;
+
+  polaroidWrapper.addEventListener('mousemove', (e) => {
+    const rect = polaroidWrapper.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const cx = rect.width / 2;
+    const cy = rect.height / 2;
+    const rotX = -((y - cy) / cy) * 6;
+    const rotY = ((x - cx) / cx) * 6;
+
+    gsap.to(polaroidCard, {
+      rotateX: rotX,
+      rotateY: rotY,
+      duration: 0.25,
+      ease: 'power1.out',
+      overwrite: 'auto'
+    });
+
+    if (polaroidGlare){
+      const px = Math.round((x / rect.width) * 100);
+      const py = Math.round((y / rect.height) * 100);
+      polaroidGlare.style.background = `radial-gradient(circle at ${px}% ${py}%, rgba(255,255,255,0.3) 0%, transparent 60%)`;
+    }
+  });
+
+  polaroidWrapper.addEventListener('mouseleave', () => {
+    gsap.to(polaroidCard, {
+      rotateX: 0,
+      rotateY: 0,
+      duration: 0.45,
+      ease: 'power2.out'
+    });
+  });
+}
+
+function openGallery(initialIdx = 0){
+  if (!galleryModal) return;
+  galleryModal.hidden = false;
+  galleryModal.setAttribute('aria-hidden', 'false');
+  galleryModal.classList.add('is-open');
+  renderPhoto(initialIdx);
+}
+
+function closeGallery(){
+  if (!galleryModal) return;
+  galleryModal.classList.remove('is-open');
+  galleryModal.setAttribute('aria-hidden', 'true');
+  setTimeout(() => {
+    if (!galleryModal.classList.contains('is-open')) galleryModal.hidden = true;
+  }, 400);
+}
+
+function setupGallery(){
+  const triggerOpen = (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    openGallery(0);
+  };
+
+  if (toastMemoriesBtn) {
+    toastMemoriesBtn.addEventListener('click', triggerOpen);
+    toastMemoriesBtn.addEventListener('pointerdown', (e) => e.stopPropagation());
+  }
+  const openMemBtn = $('openMemoriesBtn');
+  if (openMemBtn) {
+    openMemBtn.addEventListener('click', triggerOpen);
+  }
+  if (galleryClose) galleryClose.addEventListener('click', closeGallery);
+  if (galleryBackdrop) galleryBackdrop.addEventListener('click', closeGallery);
+  if (galleryPrev) galleryPrev.addEventListener('click', (e) => { e.stopPropagation(); renderPhoto(curPhotoIdx - 1, -1); });
+  if (galleryNext) galleryNext.addEventListener('click', (e) => { e.stopPropagation(); renderPhoto(curPhotoIdx + 1, 1); });
+  if (polaroidLikeBtn) polaroidLikeBtn.addEventListener('click', popHeartReaction);
+
+  if (galleryDots){
+    galleryDots.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const dot = e.target.closest('.gallery-dot');
+      if (dot && dot.dataset.index !== undefined){
+        renderPhoto(parseInt(dot.dataset.index, 10));
+      }
+    });
+  }
+
+  window.addEventListener('keydown', (e) => {
+    if (!galleryModal || !galleryModal.classList.contains('is-open')) return;
+    if (e.key === 'Escape') closeGallery();
+    else if (e.key === 'ArrowLeft') renderPhoto(curPhotoIdx - 1, -1);
+    else if (e.key === 'ArrowRight') renderPhoto(curPhotoIdx + 1, 1);
+  });
+
+  let touchStartX = 0;
+  polaroidCard && polaroidCard.addEventListener('touchstart', (e) => {
+    touchStartX = e.changedTouches[0].clientX;
+  }, { passive: true });
+  polaroidCard && polaroidCard.addEventListener('touchend', (e) => {
+    const touchEndX = e.changedTouches[0].clientX;
+    const diff = touchEndX - touchStartX;
+    if (Math.abs(diff) > 40){
+      if (diff > 0) renderPhoto(curPhotoIdx - 1, -1);
+      else renderPhoto(curPhotoIdx + 1, 1);
+    }
+  }, { passive: true });
+
+  setupParallaxTilt();
+  window.openMemories = () => openGallery(0);
+}
 
 /* the tree's own rAF: plays once from treeStart(), then holds, living */
 let treeStartT = 0, treeLastT = 0, treeRAF = 0, lastPetal = 0, replayArmed = false;
@@ -496,12 +1117,14 @@ function treeFrame(now){
   drawBranches(t);
   drawHearts(t);
   updateTwinkles(t, dt);
+  drawSunflowers(t);
   if (t > T.petalT0 && now - lastPetal > 150){ spawnPetal(); spawnPetal(); lastPetal = now; }
   drawPetals(t, dt);
   drawRested();
   drawFloaters(t, dt, true);
 
   showWish(t >= T.noteStart);
+  showCake(t >= T.noteStart + 0.3);
 
   if (!window.bdayDone && t >= T.done) window.bdayDone = true;
   if (!replayArmed && t >= T.done + 1.0){ replayArmed = true; armReplay(); }
@@ -524,9 +1147,22 @@ function drawFinal(){
   buildScene();
   drawBackground(); drawGodRays(0, 1); drawGlow(T.done); drawBokeh(0, 0); drawFloaters(99, 0, false);
   drawBranches(99); drawHearts(99);
-  for (let i = 0; i < 40; i++){ const h = hearts[(Math.random() * hearts.length) | 0]; if (h) rested.push({ x: clamp(h.x + rand(-W * 0.3, W * 0.3), 6, W - 6), y: groundY + rand(-6, H * 0.05), box: h.box * 0.5, idx: h.idx, rot: rand(0, 6.28), a: 0.85 }); }
+  drawSunflowers(99);
+  for (let i = 0; i < 45; i++){
+    const isSun = Math.random() < 0.4;
+    rested.push({
+      x: rand(10, W - 10),
+      y: groundY + rand(-6, H * 0.05),
+      box: rand(16, 32),
+      idx: (Math.random() * BLOSSOM.length) | 0,
+      isSunflower: isSun,
+      rot: rand(0, 6.28),
+      a: 0.85
+    });
+  }
   drawRested(); drawFloaters(99, 0, true);
   showWish(true);
+  showCake(true);
   window.bdayDone = true;
 }
 
@@ -701,6 +1337,62 @@ function shotGeom(){
   };
 }
 
+/* floating stardust and sparkles for Act 3 */
+function spawnStardustField(){
+  if (!stardustField) return;
+  stardustField.innerHTML = '';
+  const count = 38;
+  for (let i = 0; i < count; i++){
+    const p = document.createElement('span');
+    p.className = 'stardust-p';
+    const s = rand(2.5, 6.5);
+    p.style.width = `${s}px`;
+    p.style.height = `${s}px`;
+    p.style.left = `${rand(2, 98)}%`;
+    p.style.top = `${rand(16, 84)}%`;
+    p.style.opacity = '0';
+    stardustField.appendChild(p);
+
+    gsap.to(p, {
+      y: rand(-30, -65),
+      x: rand(-18, 18),
+      opacity: rand(0.35, 0.95),
+      duration: rand(2.0, 3.8),
+      repeat: -1,
+      yoyo: true,
+      ease: 'sine.inOut',
+      delay: rand(0, 1.2)
+    });
+  }
+}
+
+function spawnWishBurst(){
+  if (!wishSparkles) return;
+  wishSparkles.innerHTML = '';
+  const stars = ['🌻', '🎂', '✨', '✦', '⭐', '🍰', '💖', '🌻', '🎂'];
+  for (let i = 0; i < 16; i++){
+    const s = document.createElement('span');
+    s.className = 'wish-star';
+    s.textContent = pick(stars);
+    s.style.left = `${rand(12, 88)}%`;
+    s.style.top = `${rand(24, 76)}%`;
+    s.style.opacity = '0';
+    s.style.fontSize = `${rand(13, 24)}px`;
+    wishSparkles.appendChild(s);
+
+    gsap.to(s, {
+      opacity: rand(0.55, 1),
+      scale: rand(1.1, 1.6),
+      rotation: rand(-35, 35),
+      duration: rand(0.8, 1.6),
+      repeat: -1,
+      yoyo: true,
+      ease: 'sine.inOut',
+      delay: rand(0, 1.4)
+    });
+  }
+}
+
 let filmTL = null;
 function buildFilm(m){
   const t = gsap.timeline({
@@ -721,13 +1413,13 @@ function buildFilm(m){
    .set(field, { autoAlpha: 0 })
    .set('.blob', { opacity: 0 })
    .set(camera, { scale: 1, yPercent: 0 })
-   .set(fgrid, { xPercent: 0, yPercent: 0 })
    .set(barTop, { yPercent: -100 })
    .set(barBot, { yPercent: 100 })
-   .set(kEyebrow, { opacity: 0, y: 12 })
-   .set(kSub, { opacity: 0, y: 12 })
-   .set(kChars, { transformPerspective: 620, transformOrigin: '50% 100%', yPercent: 135, rotationX: -82 })
+   .set(kEyebrow, { opacity: 0, y: 14 })
+   .set(kSub, { opacity: 0, y: 14 })
+   .set(kChars, { transformPerspective: 1000, transformOrigin: '50% 100%', yPercent: 55, rotationX: -45, opacity: 0, scale: 0.88 })
    .set(uline, { drawn: 0 });
+  if (ulineSpark) t.set(ulineSpark, { opacity: 0, x: 0, y: 16 });
 
   // --- the shot: string snaps (twang), arrow flies up into the heart --------
   t.fromTo(nockProxy, { val: m.drawnNock }, { val: REST_NOCK, duration: 0.5, ease: 'elastic.out(1,0.34)', onUpdate: applyNock }, 0)
@@ -760,38 +1452,46 @@ function buildFilm(m){
   t.set(field, { autoAlpha: 1 }, 1.32)
    .set(hero, { autoAlpha: 0 }, 1.33)
    .to('.blob', { opacity: 1, duration: 0.6, ease: 'power2.out' }, 1.34)
+   .call(spawnStardustField, null, 1.34)
    .set(flood, { autoAlpha: 0 }, 1.36);
 
   // --- the camera push -------------------------------------------------------
-  // duration matched to when the bloom covers (3.98) — a longer push used to
-  // keep the timeline (and a white bloom) alive after the tree should already
-  // be growing, which read as dead time before the tree appeared.
-  t.fromTo(camera, { scale: 1.0, yPercent: 0 }, { scale: 1.07, yPercent: -1.3, duration: 2.6, ease: 'none' }, 1.38)
-   .fromTo(fgrid, { xPercent: 0, yPercent: 0 }, { xPercent: -1.5, yPercent: -1.0, duration: 2.6, ease: 'none' }, 1.38);
+  t.fromTo(camera, { scale: 1.0, yPercent: 0 }, { scale: 1.08, yPercent: -1.4, duration: 4.3, ease: 'none' }, 1.38);
+  if (stardustField){
+    t.fromTo(stardustField, { xPercent: 0, yPercent: 0 }, { xPercent: -1.5, yPercent: -1.0, duration: 4.3, ease: 'none' }, 1.38);
+  }
 
   // beat markers for the recorder's soundtrack (no-ops off ?record)
   t.call(cue, ['hit'], 0.26)
    .call(cue, ['flood'], 1.00)
    .call(cue, ['wish'], 1.68)
    .call(cue, ['wish2'], 2.06)
-   .call(cue, ['bloom'], 3.42);
+   .call(cue, ['bloom'], 5.00);
 
-  // cinema bars ease into a letterbox
-  t.to(barTop, { yPercent: 0, duration: 0.6, ease: 'power2.out' }, 1.5)
-   .to(barBot, { yPercent: 0, duration: 0.6, ease: 'power2.out' }, 1.5);
+  // cinema bars ease into a letterbox with fine golden hairline borders
+  t.to(barTop, { yPercent: 0, duration: 0.65, ease: 'power2.out' }, 1.48)
+   .to(barBot, { yPercent: 0, duration: 0.65, ease: 'power2.out' }, 1.48);
 
-  // --- the kinetic wish ------------------------------------------------------
-  t.to(kEyebrow, { opacity: 1, y: 0, duration: 0.45, ease: 'power3.out' }, 1.54)
-   .to(line1Chars, { yPercent: 0, rotationX: 0, duration: 0.55, ease: 'power3.out', stagger: 0.033 }, 1.68)
-   .to(line2Chars, { yPercent: 0, rotationX: 0, duration: 0.55, ease: 'power3.out', stagger: 0.033 }, 2.06)
-   .to(uline, { drawn: 1, duration: 0.45, ease: 'power2.inOut' }, 2.54)
-   .to(kSub, { opacity: 1, y: 0, duration: 0.45, ease: 'power3.out' }, 2.74);
+  // --- the kinetic wish: smooth luxurious reveal with no mask clipping ---
+  t.to(kEyebrow, { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out' }, 1.54)
+   .to(line1Chars, { yPercent: 0, rotationX: 0, opacity: 1, scale: 1, duration: 0.62, ease: 'back.out(1.4)', stagger: 0.038 }, 1.68)
+   .to(line2Chars, { yPercent: 0, rotationX: 0, opacity: 1, scale: 1, duration: 0.62, ease: 'back.out(1.4)', stagger: 0.038 }, 2.06)
+   .to(uline, { drawn: 1, duration: 0.62, ease: 'power2.inOut' }, 2.54);
+  if (ulineSpark){
+    t.to(ulineSpark, { opacity: 1, duration: 0.12 }, 2.54)
+     .fromTo(ulineSpark, { x: 0, y: 16 }, { x: 280, y: 18, duration: 0.62, ease: 'power2.inOut' }, 2.54)
+     .to(ulineSpark, { opacity: 0, duration: 0.25 }, 3.12);
+  }
+  t.call(spawnWishBurst, null, 2.72)
+   .to(kSub, { opacity: 1, y: 0, duration: 0.55, ease: 'power3.out' }, 2.85);
+
+  // --- extended hold: savor the magical stardust, glowing typography & wonder (holds until 4.90s) ---
 
   // --- the handoff bloom -----------------------------------------------------
-  t.to(barTop, { yPercent: -100, duration: 0.5, ease: 'power2.in' }, 3.32)
-   .to(barBot, { yPercent: 100, duration: 0.5, ease: 'power2.in' }, 3.32)
-   .set(bloom, { autoAlpha: 1 }, 3.42)
-   .fromTo(bloom, { scale: 0.02 }, { scale: m.bloomScale, duration: 0.58, ease: 'power2.in' }, 3.42);
+  t.to(barTop, { yPercent: -100, duration: 0.55, ease: 'power2.in' }, 4.90)
+   .to(barBot, { yPercent: 100, duration: 0.55, ease: 'power2.in' }, 4.90)
+   .set(bloom, { autoAlpha: 1 }, 5.00)
+   .fromTo(bloom, { scale: 0.02 }, { scale: m.bloomScale, duration: 0.62, ease: 'power2.in' }, 5.00);
 
   return t;
 }
@@ -852,6 +1552,7 @@ archery.addEventListener('keydown', (e) => {
 
 /* boot Act 1: reveal the target + bow + hint, then start the beat */
 function enter(){
+  try { if (!isMusicBoxPlaying) startMusicBox(); } catch(e){}
   gsap.set(hero, { autoAlpha: 1 });
   refreshRig();
   setDraw(0);
@@ -871,21 +1572,1001 @@ function enter(){
 
 function armReplay(){
   replay.hidden = false;
-  requestAnimationFrame(() => replay.classList.add('is-shown'));
+  requestAnimationFrame(() => {
+    replay.classList.add('is-shown');
+  });
 }
 
 /* back to Act 1, ready to be drawn again */
 function resetAll(){
   treeStop();
   showWish(false);
+  showCake(false);
+  resetCake();
+  closeGallery();
   window.bdayDone = false; replayArmed = false;
   replay.classList.remove('is-shown'); replay.hidden = true;
+  if (stardustField) stardustField.innerHTML = '';
+  if (wishSparkles) wishSparkles.innerHTML = '';
   if (filmTL){ filmTL.pause(0); }
   gsap.set([flood, bloom], { autoAlpha: 0 });
   gsap.set(field, { autoAlpha: 0 });
   gsap.set(arrow, { opacity: 1, scaleY: 1 });
   played = false;
   enter();
+}
+
+/* ============================================================
+   FEATURE 5: CELESTE / MUSIC BOX SYNTHESIS ("Happy Birthday")
+   ============================================================ */
+let audioCtx = null;
+let musicBoxMaster = null;
+let isMusicBoxPlaying = false;
+let musicBoxTimeout = null;
+
+function initAudioContext(){
+  if (!audioCtx){
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (AudioCtx){
+      audioCtx = new AudioCtx();
+    }
+  }
+  if (audioCtx && audioCtx.state === 'suspended'){
+    audioCtx.resume();
+  }
+}
+
+window.addEventListener('pointerdown', () => { initAudioContext(); }, { once: true });
+window.addEventListener('keydown', () => { initAudioContext(); }, { once: true });
+
+const BDAY_MELODY = [
+  { f: 392.00, d: 0.36, bass: 261.63 }, // G4 (C4 bass)
+  { f: 392.00, d: 0.22 },                // G4
+  { f: 440.00, d: 0.58 },                // A4
+  { f: 392.00, d: 0.58 },                // G4
+  { f: 523.25, d: 0.58 },                // C5
+  { f: 493.88, d: 1.15, bass: 196.00 }, // B4 (G3 bass)
+
+  { f: 392.00, d: 0.36 },                // G4
+  { f: 392.00, d: 0.22 },                // G4
+  { f: 440.00, d: 0.58 },                // A4
+  { f: 392.00, d: 0.58 },                // G4
+  { f: 587.33, d: 0.58 },                // D5
+  { f: 523.25, d: 1.15, bass: 261.63 }, // C5 (C4 bass)
+
+  { f: 392.00, d: 0.36 },                // G4
+  { f: 392.00, d: 0.22 },                // G4
+  { f: 783.99, d: 0.58, bass: 261.63 }, // G5 (C4 bass)
+  { f: 659.25, d: 0.58 },                // E5
+  { f: 523.25, d: 0.58 },                // C5
+  { f: 493.88, d: 0.58 },                // B4
+  { f: 440.00, d: 1.15, bass: 349.23 }, // A4 (F3 bass)
+
+  { f: 698.46, d: 0.36 },                // F5
+  { f: 698.46, d: 0.22 },                // F5
+  { f: 659.25, d: 0.58 },                // E5
+  { f: 523.25, d: 0.58 },                // C5
+  { f: 587.33, d: 0.58, bass: 196.00 }, // D5 (G3 bass)
+  { f: 523.25, d: 1.70, bass: 261.63 }  // C5 (C4 bass)
+];
+
+function playChimeNote(freq, dur, bassFreq = 0){
+  if (!audioCtx || !musicBoxMaster) return;
+  const now = audioCtx.currentTime;
+
+  const osc1 = audioCtx.createOscillator();
+  const gain1 = audioCtx.createGain();
+  osc1.type = 'sine';
+  osc1.frequency.setValueAtTime(freq, now);
+
+  const osc2 = audioCtx.createOscillator();
+  const gain2 = audioCtx.createGain();
+  osc2.type = 'sine';
+  osc2.frequency.setValueAtTime(freq * 2.756, now);
+
+  const osc3 = audioCtx.createOscillator();
+  const gain3 = audioCtx.createGain();
+  osc3.type = 'triangle';
+  osc3.frequency.setValueAtTime(freq * 5.404, now);
+
+  const decay = Math.max(1.3, dur * 2.4);
+  gain1.gain.setValueAtTime(0.32, now);
+  gain1.gain.exponentialRampToValueAtTime(0.0001, now + decay);
+
+  gain2.gain.setValueAtTime(0.08, now);
+  gain2.gain.exponentialRampToValueAtTime(0.0001, now + (decay * 0.45));
+
+  gain3.gain.setValueAtTime(0.025, now);
+  gain3.gain.exponentialRampToValueAtTime(0.0001, now + (decay * 0.22));
+
+  osc1.connect(gain1);
+  osc2.connect(gain2);
+  osc3.connect(gain3);
+
+  gain1.connect(musicBoxMaster);
+  gain2.connect(musicBoxMaster);
+  gain3.connect(musicBoxMaster);
+
+  osc1.start(now);
+  osc2.start(now);
+  osc3.start(now);
+
+  osc1.stop(now + decay);
+  osc2.stop(now + decay);
+  osc3.stop(now + decay);
+
+  if (bassFreq){
+    const oscBass = audioCtx.createOscillator();
+    const gainBass = audioCtx.createGain();
+    oscBass.type = 'sine';
+    oscBass.frequency.setValueAtTime(bassFreq, now);
+    gainBass.gain.setValueAtTime(0.18, now);
+    gainBass.gain.exponentialRampToValueAtTime(0.0001, now + 1.8);
+    oscBass.connect(gainBass);
+    gainBass.connect(musicBoxMaster);
+    oscBass.start(now);
+    oscBass.stop(now + 1.8);
+  }
+}
+
+function startMusicBox(){
+  initAudioContext();
+  if (!audioCtx) return;
+
+  if (!musicBoxMaster){
+    musicBoxMaster = audioCtx.createGain();
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = 3400;
+    musicBoxMaster.connect(filter);
+    filter.connect(audioCtx.destination);
+  }
+
+  musicBoxMaster.gain.cancelScheduledValues(audioCtx.currentTime);
+  musicBoxMaster.gain.setValueAtTime(musicBoxMaster.gain.value, audioCtx.currentTime);
+  musicBoxMaster.gain.linearRampToValueAtTime(0.85, audioCtx.currentTime + 0.3);
+
+  isMusicBoxPlaying = true;
+  const btn = $('musicBoxBtn');
+  if (btn) btn.classList.add('is-playing');
+
+  let noteIdx = 0;
+  function scheduleNext(){
+    if (!isMusicBoxPlaying) return;
+    const note = BDAY_MELODY[noteIdx];
+    playChimeNote(note.f, note.d, note.bass || 0);
+
+    noteIdx = (noteIdx + 1) % BDAY_MELODY.length;
+    const delay = (noteIdx === 0) ? (note.d + 1.5) * 1000 : (note.d * 1000);
+    musicBoxTimeout = setTimeout(scheduleNext, delay);
+  }
+  scheduleNext();
+}
+
+function stopMusicBox(){
+  isMusicBoxPlaying = false;
+  if (musicBoxTimeout) clearTimeout(musicBoxTimeout);
+  const btn = $('musicBoxBtn');
+  if (btn) btn.classList.remove('is-playing');
+
+  if (musicBoxMaster && audioCtx){
+    musicBoxMaster.gain.cancelScheduledValues(audioCtx.currentTime);
+    musicBoxMaster.gain.setValueAtTime(musicBoxMaster.gain.value, audioCtx.currentTime);
+    musicBoxMaster.gain.linearRampToValueAtTime(0.0001, audioCtx.currentTime + 0.4);
+  }
+}
+
+function toggleMusicBox(){
+  if (isMusicBoxPlaying) stopMusicBox();
+  else startMusicBox();
+}
+
+function playMagicalChime(){
+  initAudioContext();
+  if (!audioCtx) return;
+  const notes = [523.25, 659.25, 783.99, 1046.50];
+  notes.forEach((f, i) => {
+    setTimeout(() => {
+      if (!audioCtx) return;
+      const now = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(f, now);
+      gain.gain.setValueAtTime(0.15, now);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.2);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(now);
+      osc.stop(now + 1.2);
+    }, i * 75);
+  });
+}
+
+function setupMusicBox(){
+  const btn = $('musicBoxBtn');
+  if (btn){
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleMusicBox();
+    });
+  }
+
+  // Auto-play music as soon as user enters or touches/clicks anywhere
+  const autoPlayOnEnter = () => {
+    if (!isMusicBoxPlaying) {
+      startMusicBox();
+    }
+  };
+
+  window.addEventListener('pointerdown', autoPlayOnEnter, { once: true });
+  window.addEventListener('touchstart', autoPlayOnEnter, { once: true });
+  window.addEventListener('click', autoPlayOnEnter, { once: true });
+  window.addEventListener('keydown', autoPlayOnEnter, { once: true });
+
+  // Try immediate start on load
+  try {
+    startMusicBox();
+  } catch(e){}
+}
+
+/* ============================================================
+   FEATURE 1: SPARKLER & STARDUST CURSOR WAND
+   ============================================================ */
+let cursorCanvas = null;
+let cursorCtx = null;
+let cursorParticles = [];
+let cursorRAF = 0;
+let lastPointerPos = { x: -1, y: -1 };
+
+function initCursorCanvas(){
+  cursorCanvas = $('cursorCanvas');
+  if (!cursorCanvas) return;
+  cursorCtx = cursorCanvas.getContext('2d');
+  
+  function resizeCursor(){
+    cursorCanvas.width = window.innerWidth;
+    cursorCanvas.height = window.innerHeight;
+  }
+  window.addEventListener('resize', resizeCursor);
+  resizeCursor();
+
+  function spawnCursorParticles(x, y, count = 2){
+    const colors = ['#ffe17d', '#ffb703', '#fb8500', '#ffffff', '#ffd166'];
+    for (let i = 0; i < count; i++){
+      const angle = rand(0, Math.PI * 2);
+      const spd = rand(0.5, 3.2);
+      const isStar = Math.random() < 0.35;
+      const isPetal = Math.random() < 0.15;
+      cursorParticles.push({
+        x: x + rand(-4, 4),
+        y: y + rand(-4, 4),
+        vx: Math.cos(angle) * spd,
+        vy: Math.sin(angle) * spd + rand(0.3, 1.2),
+        size: isPetal ? rand(4, 7) : (isStar ? rand(3, 5.5) : rand(1.5, 3.2)),
+        color: colors[Math.floor(Math.random() * colors.length)],
+        alpha: 1,
+        decay: rand(0.022, 0.045),
+        type: isPetal ? 'petal' : (isStar ? 'star' : 'spark'),
+        rot: rand(0, Math.PI * 2),
+        vrot: rand(-0.08, 0.08)
+      });
+    }
+    if (!cursorRAF){
+      cursorRAF = requestAnimationFrame(animateCursor);
+    }
+  }
+
+  function onPointerMove(e){
+    const x = e.clientX !== undefined ? e.clientX : (e.touches && e.touches[0] ? e.touches[0].clientX : -1);
+    const y = e.clientY !== undefined ? e.clientY : (e.touches && e.touches[0] ? e.touches[0].clientY : -1);
+    if (x < 0 || y < 0) return;
+
+    if (lastPointerPos.x >= 0){
+      const dx = x - lastPointerPos.x;
+      const dy = y - lastPointerPos.y;
+      const dist = Math.hypot(dx, dy);
+      if (dist > 6){
+        const steps = Math.min(6, Math.floor(dist / 14));
+        for (let s = 1; s <= steps; s++){
+          const t = s / steps;
+          spawnCursorParticles(lastPointerPos.x + dx * t, lastPointerPos.y + dy * t, 1);
+        }
+      }
+    }
+    lastPointerPos = { x, y };
+    spawnCursorParticles(x, y, 1);
+  }
+
+  function onPointerDown(e){
+    const x = e.clientX !== undefined ? e.clientX : (e.touches && e.touches[0] ? e.touches[0].clientX : -1);
+    const y = e.clientY !== undefined ? e.clientY : (e.touches && e.touches[0] ? e.touches[0].clientY : -1);
+    if (x < 0 || y < 0) return;
+    spawnCursorParticles(x, y, 22);
+  }
+
+  window.addEventListener('pointermove', onPointerMove, { passive: true });
+  window.addEventListener('pointerdown', onPointerDown, { passive: true });
+  window.addEventListener('touchmove', onPointerMove, { passive: true });
+  window.addEventListener('touchstart', onPointerDown, { passive: true });
+}
+
+function animateCursor(){
+  if (!cursorCtx || !cursorCanvas) return;
+  cursorCtx.clearRect(0, 0, cursorCanvas.width, cursorCanvas.height);
+
+  for (let i = cursorParticles.length - 1; i >= 0; i--){
+    const p = cursorParticles[i];
+    p.x += p.vx;
+    p.y += p.vy;
+    p.vy += 0.05;
+    p.vx *= 0.98;
+    p.alpha -= p.decay;
+    p.rot += p.vrot;
+
+    if (p.alpha <= 0){
+      cursorParticles.splice(i, 1);
+      continue;
+    }
+
+    cursorCtx.save();
+    cursorCtx.globalAlpha = Math.max(0, p.alpha);
+    cursorCtx.translate(p.x, p.y);
+    cursorCtx.rotate(p.rot);
+
+    if (p.type === 'star'){
+      cursorCtx.fillStyle = p.color;
+      cursorCtx.shadowColor = p.color;
+      cursorCtx.shadowBlur = 8;
+      const r = p.size;
+      cursorCtx.beginPath();
+      cursorCtx.moveTo(0, -r);
+      cursorCtx.quadraticCurveTo(0, 0, r, 0);
+      cursorCtx.quadraticCurveTo(0, 0, 0, r);
+      cursorCtx.quadraticCurveTo(0, 0, -r, 0);
+      cursorCtx.quadraticCurveTo(0, 0, 0, -r);
+      cursorCtx.fill();
+    } else if (p.type === 'petal'){
+      cursorCtx.fillStyle = '#ffb703';
+      cursorCtx.shadowColor = '#fb8500';
+      cursorCtx.shadowBlur = 6;
+      cursorCtx.beginPath();
+      cursorCtx.ellipse(0, 0, p.size * 0.5, p.size, 0, 0, Math.PI * 2);
+      cursorCtx.fill();
+    } else {
+      cursorCtx.fillStyle = p.color;
+      cursorCtx.shadowColor = p.color;
+      cursorCtx.shadowBlur = 10;
+      cursorCtx.beginPath();
+      cursorCtx.arc(0, 0, p.size, 0, Math.PI * 2);
+      cursorCtx.fill();
+    }
+
+    cursorCtx.restore();
+  }
+
+  if (cursorParticles.length > 0){
+    cursorRAF = requestAnimationFrame(animateCursor);
+  } else {
+    cursorRAF = 0;
+  }
+}
+
+/* ============================================================
+   FEATURE 3: MIDNIGHT FIREWORKS SPECTACULAR ("DAVA SRI")
+   ============================================================ */
+let fwCanvas = null;
+let fwCtx = null;
+let fwParticles = [];
+let fwRockets = [];
+let fwRAF = 0;
+let fwRunning = false;
+
+function initFireworksCanvas(){
+  fwCanvas = $('fireworksCanvas');
+  if (!fwCanvas) return;
+  fwCtx = fwCanvas.getContext('2d');
+  function resizeFw(){
+    fwCanvas.width = window.innerWidth;
+    fwCanvas.height = window.innerHeight;
+  }
+  window.addEventListener('resize', resizeFw);
+  resizeFw();
+}
+
+function playFireworkSound(isFinale = false){
+  initAudioContext();
+  if (!audioCtx) return;
+  const now = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(isFinale ? 130 : 100, now);
+  osc.frequency.exponentialRampToValueAtTime(28, now + (isFinale ? 0.8 : 0.5));
+  gain.gain.setValueAtTime(isFinale ? 0.4 : 0.25, now);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + (isFinale ? 0.9 : 0.6));
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start(now);
+  osc.stop(now + 1.0);
+}
+
+function launchRocket(startX, startY, targetX, targetY, type, onExplode){
+  fwRockets.push({
+    x: startX,
+    y: startY,
+    targetX,
+    targetY,
+    vx: (targetX - startX) / 32,
+    vy: (targetY - startY) / 32,
+    step: 0,
+    maxSteps: 32,
+    type,
+    onExplode
+  });
+  if (!fwRAF){
+    fwRunning = true;
+    fwRAF = requestAnimationFrame(animateFireworks);
+  }
+}
+
+function createFireworkBurst(cx, cy, type = 'willow'){
+  playFireworkSound(type === 'davaSri');
+  const paletteGold = ['#fff275', '#ffb703', '#fb8500', '#ffffff', '#ffd166'];
+  const paletteRose = ['#ff4d6d', '#ff758f', '#ffb3c1', '#fff0f3', '#ff8fa3'];
+
+  if (type === 'willow'){
+    for (let i = 0; i < 90; i++){
+      const angle = rand(0, Math.PI * 2);
+      const spd = rand(1.5, 7.5);
+      fwParticles.push({
+        x: cx, y: cy,
+        vx: Math.cos(angle) * spd,
+        vy: Math.sin(angle) * spd,
+        gravity: 0.06,
+        drag: 0.97,
+        alpha: 1,
+        decay: rand(0.009, 0.018),
+        color: paletteGold[Math.floor(Math.random() * paletteGold.length)],
+        size: rand(1.8, 3.2),
+        flicker: true
+      });
+    }
+  } else if (type === 'heart'){
+    for (let t = 0; t < Math.PI * 2; t += 0.08){
+      const hx = 16 * Math.pow(Math.sin(t), 3);
+      const hy = -(13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t));
+      const spd = rand(0.22, 0.28);
+      fwParticles.push({
+        x: cx, y: cy,
+        vx: hx * spd,
+        vy: hy * spd,
+        gravity: 0.03,
+        drag: 0.96,
+        alpha: 1,
+        decay: rand(0.012, 0.022),
+        color: paletteRose[Math.floor(Math.random() * paletteRose.length)],
+        size: rand(2.2, 3.8),
+        flicker: true
+      });
+    }
+  } else if (type === 'sunflower'){
+    for (let i = 0; i < 80; i++){
+      const angle = (i / 80) * Math.PI * 2;
+      const spd = rand(4.5, 6.2);
+      fwParticles.push({
+        x: cx, y: cy,
+        vx: Math.cos(angle) * spd,
+        vy: Math.sin(angle) * spd,
+        gravity: 0.04,
+        drag: 0.96,
+        alpha: 1,
+        decay: rand(0.012, 0.022),
+        color: '#ffb703',
+        size: rand(2.5, 4.0),
+        flicker: true
+      });
+    }
+    for (let i = 0; i < 25; i++){
+      const angle = rand(0, Math.PI * 2);
+      const spd = rand(0.5, 2.2);
+      fwParticles.push({
+        x: cx, y: cy,
+        vx: Math.cos(angle) * spd,
+        vy: Math.sin(angle) * spd,
+        gravity: 0.02,
+        drag: 0.95,
+        alpha: 1,
+        decay: 0.016,
+        color: '#8b4500',
+        size: rand(2, 3),
+        flicker: false
+      });
+    }
+  } else if (type === 'davaSri'){
+    const LETTER_MATRICES = {
+      'D': [
+        [1,1,1,0],
+        [1,0,0,1],
+        [1,0,0,1],
+        [1,0,0,1],
+        [1,0,0,1],
+        [1,0,0,1],
+        [1,1,1,0]
+      ],
+      'A': [
+        [0,1,1,0],
+        [1,0,0,1],
+        [1,0,0,1],
+        [1,1,1,1],
+        [1,0,0,1],
+        [1,0,0,1],
+        [1,0,0,1]
+      ],
+      'V': [
+        [1,0,0,0,1],
+        [1,0,0,0,1],
+        [0,1,0,1,0],
+        [0,1,0,1,0],
+        [0,0,1,0,0]
+      ],
+      'S': [
+        [0,1,1,1],
+        [1,0,0,0],
+        [1,1,1,0],
+        [0,0,0,1],
+        [0,0,0,1],
+        [1,0,0,1],
+        [0,1,1,0]
+      ],
+      'R': [
+        [1,1,1,0],
+        [1,0,0,1],
+        [1,0,0,1],
+        [1,1,1,0],
+        [1,0,1,0],
+        [1,0,0,1],
+        [1,0,0,1]
+      ],
+      'I': [
+        [1,1,1],
+        [0,1,0],
+        [0,1,0],
+        [0,1,0],
+        [0,1,0],
+        [0,1,0],
+        [1,1,1]
+      ]
+    };
+
+    const word1 = ['D', 'A', 'V', 'A'];
+    const word2 = ['S', 'R', 'I'];
+    const dotSpacing = Math.min(13, Math.max(7, window.innerWidth / 70));
+    
+    function measureWordWidth(letters){
+      let w = 0;
+      letters.forEach((ch, idx) => {
+        const mat = LETTER_MATRICES[ch];
+        const cols = mat ? mat[0].length : 3;
+        w += cols * dotSpacing;
+        if (idx < letters.length - 1) w += dotSpacing * 1.6;
+      });
+      return w;
+    }
+
+    const w1Width = measureWordWidth(word1);
+    const w2Width = measureWordWidth(word2);
+    const spaceBetweenWords = dotSpacing * 3.5;
+    const totalWidth = w1Width + spaceBetweenWords + w2Width;
+    let currX = cx - totalWidth / 2;
+    const baseY = cy - (3.5 * dotSpacing);
+
+    function spawnWord(letters){
+      letters.forEach((ch, idx) => {
+        const mat = LETTER_MATRICES[ch];
+        if (!mat) return;
+        const rows = mat.length;
+        const cols = mat[0].length;
+        for (let r = 0; r < rows; r++){
+          for (let c = 0; c < cols; c++){
+            if (mat[r][c] === 1){
+              const px = currX + c * dotSpacing;
+              const py = baseY + r * dotSpacing;
+              fwParticles.push({
+                x: cx + rand(-15, 15),
+                y: cy + rand(-15, 15),
+                targetX: px,
+                targetY: py,
+                isLetter: true,
+                alpha: 1,
+                life: 0,
+                maxLife: 240,
+                color: '#fff5b8',
+                size: rand(2.2, 3.8),
+                flickerRate: rand(0.15, 0.35)
+              });
+            }
+          }
+        }
+        currX += (cols * dotSpacing) + (dotSpacing * 1.6);
+      });
+    }
+
+    spawnWord(word1);
+    currX += spaceBetweenWords - (dotSpacing * 1.6);
+    spawnWord(word2);
+
+    for (let i = 0; i < 70; i++){
+      const angle = rand(0, Math.PI * 2);
+      const spd = rand(4, 9);
+      fwParticles.push({
+        x: cx, y: cy,
+        vx: Math.cos(angle) * spd,
+        vy: Math.sin(angle) * spd,
+        gravity: 0.04,
+        drag: 0.97,
+        alpha: 1,
+        decay: rand(0.008, 0.016),
+        color: paletteGold[Math.floor(Math.random() * paletteGold.length)],
+        size: rand(1.8, 3.2),
+        flicker: true
+      });
+    }
+  }
+}
+
+function animateFireworks(){
+  if (!fwCtx || !fwCanvas) return;
+  fwCtx.clearRect(0, 0, fwCanvas.width, fwCanvas.height);
+
+  for (let i = fwRockets.length - 1; i >= 0; i--){
+    const r = fwRockets[i];
+    r.step++;
+    r.x += r.vx;
+    r.y += r.vy;
+
+    fwCtx.save();
+    fwCtx.fillStyle = '#ffcf56';
+    fwCtx.shadowColor = '#ffaa00';
+    fwCtx.shadowBlur = 8;
+    fwCtx.beginPath();
+    fwCtx.arc(r.x, r.y, 2.5, 0, Math.PI * 2);
+    fwCtx.fill();
+    fwCtx.restore();
+
+    if (r.step >= r.maxSteps){
+      createFireworkBurst(r.targetX, r.targetY, r.type);
+      if (r.onExplode) r.onExplode();
+      fwRockets.splice(i, 1);
+    }
+  }
+
+  for (let i = fwParticles.length - 1; i >= 0; i--){
+    const p = fwParticles[i];
+
+    if (p.isLetter){
+      p.life++;
+      if (p.targetX !== undefined){
+        p.x += (p.targetX - p.x) * 0.12;
+        p.y += (p.targetY - p.y) * 0.12;
+      }
+      if (p.life > 190){
+        p.y += (p.life - 190) * 0.04;
+        p.alpha -= 0.018;
+      }
+      if (p.alpha <= 0 || p.life >= p.maxLife){
+        fwParticles.splice(i, 1);
+        continue;
+      }
+
+      fwCtx.save();
+      const sparkle = (Math.sin(p.life * p.flickerRate) * 0.4 + 0.6) * p.alpha;
+      fwCtx.globalAlpha = Math.max(0, sparkle);
+      fwCtx.fillStyle = p.color;
+      fwCtx.shadowColor = '#ffb703';
+      fwCtx.shadowBlur = 12;
+      fwCtx.beginPath();
+      const jx = rand(-0.7, 0.7);
+      const jy = rand(-0.7, 0.7);
+      fwCtx.arc(p.x + jx, p.y + jy, p.size, 0, Math.PI * 2);
+      fwCtx.fill();
+      fwCtx.restore();
+
+    } else {
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vy += p.gravity || 0.04;
+      p.vx *= p.drag || 0.97;
+      p.vy *= p.drag || 0.97;
+      p.alpha -= p.decay || 0.015;
+
+      if (p.alpha <= 0){
+        fwParticles.splice(i, 1);
+        continue;
+      }
+
+      fwCtx.save();
+      const flicker = p.flicker ? (Math.random() * 0.4 + 0.6) : 1;
+      fwCtx.globalAlpha = Math.max(0, p.alpha * flicker);
+      fwCtx.fillStyle = p.color;
+      fwCtx.shadowColor = p.color;
+      fwCtx.shadowBlur = 6;
+      fwCtx.beginPath();
+      fwCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      fwCtx.fill();
+      fwCtx.restore();
+    }
+  }
+
+  if (fwRockets.length > 0 || fwParticles.length > 0){
+    fwRAF = requestAnimationFrame(animateFireworks);
+  } else {
+    fwRAF = 0;
+    fwRunning = false;
+  }
+}
+
+function launchMidnightFireworks(){
+  initFireworksCanvas();
+  const W = window.innerWidth;
+  const H = window.innerHeight;
+
+  setTimeout(() => {
+    launchRocket(W * 0.25, H, W * 0.32, H * 0.32, 'willow');
+    launchRocket(W * 0.75, H, W * 0.68, H * 0.30, 'willow');
+  }, 200);
+
+  setTimeout(() => {
+    launchRocket(W * 0.35, H, W * 0.40, H * 0.36, 'heart');
+    launchRocket(W * 0.65, H, W * 0.60, H * 0.36, 'heart');
+  }, 1600);
+
+  setTimeout(() => {
+    launchRocket(W * 0.5, H, W * 0.5, H * 0.26, 'sunflower');
+  }, 3100);
+
+  setTimeout(() => {
+    launchRocket(W * 0.5, H, W * 0.5, H * 0.22, 'davaSri');
+  }, 4500);
+}
+
+/* ============================================================
+   FEATURE 2: FLOATING SKY LANTERNS SYSTEM
+   ============================================================ */
+let selectedLanternWish = '🌻 Bright Smiles & Golden Sunshine';
+
+function openLanternModal(){
+  const modal = $('lanternModal');
+  if (!modal) return;
+  modal.hidden = false;
+  modal.setAttribute('aria-hidden', 'false');
+  modal.classList.add('is-open');
+  const input = $('lanternCustomInput');
+  if (input) input.value = '';
+  updateLanternTagPreview(selectedLanternWish);
+}
+
+function closeLanternModal(){
+  const modal = $('lanternModal');
+  if (!modal) return;
+  modal.classList.remove('is-open');
+  modal.setAttribute('aria-hidden', 'true');
+  setTimeout(() => {
+    if (!modal.classList.contains('is-open')) modal.hidden = true;
+  }, 400);
+}
+
+function updateLanternTagPreview(text){
+  const tag = $('lanternTagPreview');
+  if (tag){
+    tag.textContent = 'Dava Sri ✦ ' + (text || 'Pure Joy');
+  }
+}
+
+function spawnSkyLantern(wishText){
+  const container = $('skyLanterns');
+  if (!container) return;
+
+  const lantern = document.createElement('div');
+  lantern.className = 'sky-lantern';
+
+  const inner = document.createElement('div');
+  inner.className = 'sky-lantern__inner';
+
+  const base = document.createElement('div');
+  base.className = 'sky-lantern__base';
+
+  const tag = document.createElement('div');
+  tag.className = 'sky-lantern__tag';
+  tag.textContent = 'Dava Sri ✦ ' + wishText;
+
+  lantern.appendChild(inner);
+  lantern.appendChild(base);
+  lantern.appendChild(tag);
+
+  const startX = rand(15, 85);
+  lantern.style.left = startX + 'vw';
+  lantern.style.bottom = '-80px';
+  lantern.style.transform = 'scale(' + rand(0.85, 1.1) + ')';
+
+  container.appendChild(lantern);
+
+  playMagicalChime();
+
+  const floatDuration = rand(15, 22);
+  const driftX = rand(-70, 70);
+
+  gsap.to(lantern, {
+    y: -(window.innerHeight + 160),
+    duration: floatDuration,
+    ease: 'power1.inOut',
+    onComplete: () => {
+      if (lantern.parentNode) lantern.parentNode.removeChild(lantern);
+    }
+  });
+
+  gsap.to(lantern, {
+    x: driftX,
+    duration: rand(4, 7),
+    repeat: -1,
+    yoyo: true,
+    ease: 'sine.inOut'
+  });
+
+  gsap.to(lantern, {
+    scale: 0.32,
+    opacity: 0.65,
+    delay: floatDuration * 0.5,
+    duration: floatDuration * 0.5,
+    ease: 'power2.in'
+  });
+}
+
+function setupLanterns(){
+  const openBtn = $('openLanternBtn');
+  if (openBtn) openBtn.addEventListener('click', openLanternModal);
+
+  const closeBtn = $('lanternCloseBtn');
+  if (closeBtn) closeBtn.addEventListener('click', closeLanternModal);
+
+  const backdrop = $('lanternBackdrop');
+  if (backdrop) backdrop.addEventListener('click', closeLanternModal);
+
+  const presets = document.querySelectorAll('.lantern-presets .preset-btn');
+  presets.forEach(btn => {
+    btn.addEventListener('click', () => {
+      presets.forEach(p => p.classList.remove('is-selected'));
+      btn.classList.add('is-selected');
+      selectedLanternWish = btn.dataset.wish || btn.textContent.trim();
+      updateLanternTagPreview(selectedLanternWish);
+    });
+  });
+
+  const customInput = $('lanternCustomInput');
+  if (customInput){
+    customInput.addEventListener('input', (e) => {
+      const val = e.target.value.trim();
+      if (val){
+        presets.forEach(p => p.classList.remove('is-selected'));
+        selectedLanternWish = val;
+      }
+      updateLanternTagPreview(val || selectedLanternWish);
+    });
+  }
+
+  const submitBtn = $('lanternSubmitBtn');
+  if (submitBtn){
+    submitBtn.addEventListener('click', () => {
+      const customVal = customInput ? customInput.value.trim() : '';
+      const wishToRelease = customVal || selectedLanternWish || 'Golden Sunshine & Smiles';
+      closeLanternModal();
+      spawnSkyLantern(wishToRelease);
+    });
+  }
+
+  window.addEventListener('keydown', (e) => {
+    const modal = $('lanternModal');
+    if (modal && modal.classList.contains('is-open') && e.key === 'Escape'){
+      closeLanternModal();
+    }
+  });
+}
+
+/* ============================================================
+   FEATURE 4: WAX-SEALED SECRET LETTER MODAL
+   ============================================================ */
+let isLetterUnsealed = false;
+
+function openLetterModal(){
+  const modal = $('letterModal');
+  if (!modal) return;
+  modal.hidden = false;
+  modal.setAttribute('aria-hidden', 'false');
+  modal.classList.add('is-open');
+
+  const envelope = $('letterEnvelope');
+  const parchment = $('letterParchment');
+  if (envelope && parchment){
+    if (isLetterUnsealed){
+      envelope.hidden = true;
+      parchment.hidden = false;
+    } else {
+      envelope.hidden = false;
+      parchment.hidden = true;
+    }
+  }
+}
+
+function closeLetterModal(){
+  const modal = $('letterModal');
+  if (!modal) return;
+  modal.classList.remove('is-open');
+  modal.setAttribute('aria-hidden', 'true');
+  setTimeout(() => {
+    if (!modal.classList.contains('is-open')) modal.hidden = true;
+  }, 400);
+}
+
+function unsealLetter(){
+  if (isLetterUnsealed) return;
+  isLetterUnsealed = true;
+
+  const seal = $('letterSeal');
+  const envelope = $('letterEnvelope');
+  const parchment = $('letterParchment');
+
+  playMagicalChime();
+
+  if (seal){
+    gsap.to(seal, {
+      scale: 1.25,
+      rotation: 12,
+      boxShadow: '0 0 35px #ffd066',
+      duration: 0.2,
+      onComplete: () => {
+        gsap.to(seal, { scale: 0, opacity: 0, duration: 0.25 });
+        if (envelope && parchment){
+          gsap.to(envelope, {
+            scale: 0.9,
+            opacity: 0,
+            duration: 0.35,
+            onComplete: () => {
+              envelope.hidden = true;
+              parchment.hidden = false;
+              gsap.fromTo(parchment,
+                { scale: 0.85, opacity: 0, y: 30 },
+                { scale: 1, opacity: 1, y: 0, duration: 0.5, ease: 'back.out(1.4)' }
+              );
+            }
+          });
+        }
+      }
+    });
+  }
+}
+
+function setupLetter(){
+  const openBtn = $('openLetterBtn');
+  if (openBtn) openBtn.addEventListener('click', openLetterModal);
+
+  const seal = $('letterSeal');
+  if (seal) seal.addEventListener('click', unsealLetter);
+
+  const envelope = $('letterEnvelope');
+  if (envelope) envelope.addEventListener('click', unsealLetter);
+
+  const closeBtn = $('letterCloseBtn');
+  if (closeBtn) closeBtn.addEventListener('click', closeLetterModal);
+
+  const backdrop = $('letterBackdrop');
+  if (backdrop) backdrop.addEventListener('click', closeLetterModal);
+
+  window.addEventListener('keydown', (e) => {
+    const modal = $('letterModal');
+    if (modal && modal.classList.contains('is-open') && e.key === 'Escape'){
+      closeLetterModal();
+    }
+  });
 }
 
 /* ============================================================
@@ -914,9 +2595,23 @@ window.addEventListener('resize', () => { if (resizeRAF) return; resizeRAF = req
 resize();
 
 if (reduceMotion){
+  setupCake();
+  setupGallery();
+  setupMusicBox();
+  initCursorCanvas();
+  initFireworksCanvas();
+  setupLanterns();
+  setupLetter();
   drawFinal();
 } else {
   buildMotes();
+  setupCake();
+  setupGallery();
+  setupMusicBox();
+  initCursorCanvas();
+  initFireworksCanvas();
+  setupLanterns();
+  setupLetter();
   document.fonts && document.fonts.ready.then(() => { refreshRig(); setDraw(0); });
   enter();
   replay.addEventListener('click', resetAll);

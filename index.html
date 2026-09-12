@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>Happy Birthday ♥ — a little film</title>
+  <title>Happy Birthday Dava Sri ♥ — a little film</title>
   <meta name="description" content="A cinematic birthday film in four acts: a beating heart you open with a tap, a rush of colour, a kinetic wish, and a tree that blooms into a heart of petals." />
   <meta name="theme-color" content="#f7e7dc" />
   <link rel="icon" type="image/png" href="/favicon.png" />
@@ -16,11 +16,28 @@
   <link rel="stylesheet" href="./birthday.css" />
 </head>
 <body>
+  <!-- CELESTE / MUSIC BOX PLAYER TOGGLE -->
+  <button class="music-box-btn" id="musicBoxBtn" type="button" aria-label="Play Birthday Music Box Melody" title="Play Birthday Music Box Melody">
+    <span class="music-box-icon" aria-hidden="true">🎵</span>
+    <span class="music-box-text">Music Box</span>
+    <span class="music-box-bars" aria-hidden="true">
+      <span class="bar bar--1"></span>
+      <span class="bar bar--2"></span>
+      <span class="bar bar--3"></span>
+    </span>
+  </button>
+
   <main class="scene">
 
     <!-- The tree world (Act 4). One canvas; it stays transparent until the
          intro hands off, then it draws its own warm sky + blossom tree. -->
     <canvas id="tree" class="tree" aria-label="A blossom tree grows and blooms into a heart made of petals" role="img"></canvas>
+
+    <!-- MIDNIGHT FIREWORKS CANVASES (Behind HUD, over tree) -->
+    <canvas id="fireworksCanvas" class="fireworks-canvas" aria-hidden="true"></canvas>
+
+    <!-- FLOATING SKY LANTERNS CONTAINER -->
+    <div id="skyLanterns" class="sky-lanterns-container" aria-hidden="true"></div>
 
     <!-- ACT 1 — THE INVITATION ------------------------------------------------
          A single beating heart on a warm field. It is the only thing the
@@ -172,24 +189,33 @@
       <div class="blob blob--1"></div>
       <div class="blob blob--2"></div>
       <div class="blob blob--3"></div>
-      <div class="fgrid" id="fgrid"></div>
+      <div class="aurora-glow" id="auroraGlow"></div>
+      <div class="stardust-field" id="stardustField"></div>
       <div class="fvignette"></div>
 
       <div class="camera" id="camera">
-        <p class="kEyebrow" id="kEyebrow">make a wish&hellip;</p>
+        <!-- Floating stardust and golden sparkles in Act 3 -->
+        <div class="wish-sparkles" id="wishSparkles" aria-hidden="true"></div>
+
+        <p class="kEyebrow" id="kEyebrow">
+          <span class="eyebrow-star">✦</span> make a wish&hellip; <span class="eyebrow-star">✦</span>
+        </p>
         <h2 class="headline" id="headline">
           <span class="hl__line"><span class="mask"><span class="hl__word" id="wLine1">Happy</span></span></span>
           <span class="hl__line"><span class="mask"><span class="hl__word" id="wLine2">Birthday</span></span></span>
         </h2>
-        <svg class="uline" id="uline" viewBox="0 0 300 26" fill="none" aria-hidden="true">
-          <path class="uline__path" d="M8 16C56 7 132 4 178 6c30 1 78 5 114 12-40 3-108 4-176 3"
-                stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" />
-        </svg>
-        <p class="kSub" id="kSub">to someone worth celebrating</p>
+        <div class="uline-wrap">
+          <svg class="uline" id="uline" viewBox="0 0 300 26" fill="none" aria-hidden="true">
+            <path class="uline__path" d="M8 16C56 7 132 4 178 6c30 1 78 5 114 12-40 3-108 4-176 3"
+                  stroke="currentColor" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+          <span class="uline-spark" id="ulineSpark" aria-hidden="true">✨</span>
+        </div>
+        <p class="kSub" id="kSub">to Dava Sri &bull; someone worth celebrating</p>
       </div>
 
-      <div class="bar bar--top" id="barTop"></div>
-      <div class="bar bar--bot" id="barBot"></div>
+      <div class="bar bar--top" id="barTop"><div class="bar__line"></div></div>
+      <div class="bar bar--bot" id="barBot"><div class="bar__line"></div></div>
     </div>
 
     <!-- The gold light that bridges the rose wish into the dawn of the tree. -->
@@ -197,10 +223,179 @@
 
     <!-- ACT 4 — THE HAND-LETTERED WISH (over the tree) ------------------------ -->
     <div class="wish" id="wish" aria-hidden="true">
+      <div class="wish__decor" aria-hidden="true">
+        <span class="decor-flower">🌻</span>
+        <span class="decor-cake">🎂</span>
+        <span class="decor-flower">🌻</span>
+      </div>
       <p class="wish__eyebrow" id="wEyebrow">and&hellip; make it count</p>
-      <div class="wish__heroWrap"><h1 class="wish__hero" id="wHero">Happy Birthday</h1></div>
+      <div class="wish__heroWrap">
+        <h1 class="wish__hero" id="wHero">
+          <span class="wish__title">Happy Birthday</span>
+          <span class="wish__name">Dava Sri</span>
+        </h1>
+      </div>
       <span class="wish__rule" id="wRule"></span>
-      <p class="wish__sub" id="wSub">here&rsquo;s to a year that blooms</p>
+      <p class="wish__sub" id="wSub">here&rsquo;s to a year that blooms with sunflowers &amp; sweetness &#x1F33B;&#x1F382;</p>
+    </div>
+
+    <!-- CELEBRATORY BIRTHDAY CAKE & SUNFLOWER WISH (Act 4) -->
+    <div class="cake-wrapper" id="cakeWrapper" aria-hidden="true">
+      <div class="cake-card" id="cakeCard" role="button" tabindex="0" aria-label="Interactive Birthday Cake. Click to blow out the candles and make a wish!">
+        <div class="cake__prompt" id="cakePrompt">
+          <span class="prompt-icon">🎂</span> Tap to make a wish &amp; blow candles <span class="prompt-icon">🌻</span>
+        </div>
+        
+        <div class="cake-stage">
+          <svg class="cake-svg" viewBox="0 0 200 180" aria-hidden="true">
+            <defs>
+              <linearGradient id="cakeStandGrad" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stop-color="#e8d3ba" />
+                <stop offset="50%" stop-color="#fff4e6" />
+                <stop offset="100%" stop-color="#d4bfa6" />
+              </linearGradient>
+              <linearGradient id="tier1Grad" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stop-color="#ffb4ca" />
+                <stop offset="50%" stop-color="#ffe3eb" />
+                <stop offset="100%" stop-color="#f29bb4" />
+              </linearGradient>
+              <linearGradient id="tier2Grad" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stop-color="#ffd89b" />
+                <stop offset="50%" stop-color="#fff5e4" />
+                <stop offset="100%" stop-color="#f8c377" />
+              </linearGradient>
+              <linearGradient id="frostingWhite" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#ffffff" />
+                <stop offset="100%" stop-color="#fff0e1" />
+              </linearGradient>
+              <linearGradient id="candleGrad1" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stop-color="#ff6b8b" />
+                <stop offset="50%" stop-color="#ffffff" />
+                <stop offset="100%" stop-color="#ff6b8b" />
+              </linearGradient>
+              <linearGradient id="candleGrad2" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stop-color="#e5a110" />
+                <stop offset="50%" stop-color="#fff7cd" />
+                <stop offset="100%" stop-color="#e5a110" />
+              </linearGradient>
+              <radialGradient id="flameGrad" cx="50%" cy="65%" r="60%">
+                <stop offset="0%" stop-color="#ffffff" />
+                <stop offset="25%" stop-color="#ffe66d" />
+                <stop offset="65%" stop-color="#ff6b35" />
+                <stop offset="100%" stop-color="#d90429" />
+              </radialGradient>
+              <radialGradient id="flameAura" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="rgba(255,220,130,0.85)" />
+                <stop offset="50%" stop-color="rgba(255,160,80,0.35)" />
+                <stop offset="100%" stop-color="rgba(255,140,50,0)" />
+              </radialGradient>
+              <filter id="flameGlow" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur in="SourceGraphic" stdDeviation="2.5" />
+              </filter>
+            </defs>
+
+            <!-- Pedestal stand -->
+            <ellipse cx="100" cy="172" rx="46" ry="6" fill="rgba(80,20,35,0.22)" />
+            <path d="M72 166 Q100 162 128 166 L120 172 Q100 174 80 172 Z" fill="url(#cakeStandGrad)" />
+            <path d="M92 148 L94 166 Q100 167 106 166 L108 148 Z" fill="url(#cakeStandGrad)" />
+            <ellipse cx="100" cy="148" rx="68" ry="11" fill="url(#cakeStandGrad)" stroke="#cbb396" stroke-width="0.8" />
+            <ellipse cx="100" cy="147" rx="64" ry="9" fill="#fffaf5" />
+
+            <!-- Tier 1 (Bottom Tier) -->
+            <path d="M48 114 Q100 126 152 114 L152 142 Q100 156 48 142 Z" fill="url(#tier1Grad)" />
+            <ellipse cx="100" cy="114" rx="52" ry="10" fill="#ffe9ef" stroke="#f29bb4" stroke-width="0.5" />
+            
+            <!-- Bottom Tier Icing Drips -->
+            <path d="M48 114 Q54 126 60 116 Q66 130 74 116 Q82 128 92 117 Q102 131 112 116 Q122 127 132 116 Q142 129 152 114 Q100 124 48 114 Z" fill="url(#frostingWhite)" />
+            
+            <!-- Decorative mini sugar sunflower accents on bottom tier -->
+            <g transform="translate(62, 134) scale(0.18)">
+              <circle cx="0" cy="0" r="28" fill="#fca311" />
+              <circle cx="0" cy="0" r="14" fill="#582f0e" />
+            </g>
+            <g transform="translate(138, 134) scale(0.18)">
+              <circle cx="0" cy="0" r="28" fill="#fca311" />
+              <circle cx="0" cy="0" r="14" fill="#582f0e" />
+            </g>
+            <g transform="translate(100, 137) scale(0.22)">
+              <circle cx="0" cy="0" r="28" fill="#fca311" />
+              <circle cx="0" cy="0" r="14" fill="#582f0e" />
+            </g>
+
+            <!-- Tier 2 (Top Tier) -->
+            <path d="M64 82 Q100 92 136 82 L136 106 Q100 116 64 106 Z" fill="url(#tier2Grad)" />
+            <ellipse cx="100" cy="82" rx="36" ry="7.5" fill="#fff7eb" stroke="#f8c377" stroke-width="0.5" />
+            
+            <!-- Top Tier Drips -->
+            <path d="M64 82 Q72 94 80 84 Q88 96 98 84 Q108 97 118 84 Q128 94 136 82 Q100 91 64 82 Z" fill="url(#frostingWhite)" />
+
+            <!-- Decorative Sugar Sunflower on Top Tier -->
+            <g transform="translate(100, 84) scale(0.26)">
+              <ellipse cx="0" cy="-24" rx="6" ry="12" fill="#ffb703" />
+              <ellipse cx="17" cy="-17" rx="6" ry="12" transform="rotate(45 17 -17)" fill="#ffb703" />
+              <ellipse cx="24" cy="0" rx="6" ry="12" transform="rotate(90 24 0)" fill="#ffb703" />
+              <ellipse cx="17" cy="17" rx="6" ry="12" transform="rotate(135 17 17)" fill="#ffb703" />
+              <ellipse cx="0" cy="24" rx="6" ry="12" transform="rotate(180 0 24)" fill="#ffb703" />
+              <ellipse cx="-17" cy="17" rx="6" ry="12" transform="rotate(225 -17 17)" fill="#ffb703" />
+              <ellipse cx="-24" cy="0" rx="6" ry="12" transform="rotate(270 -24 0)" fill="#ffb703" />
+              <ellipse cx="-17" cy="-17" rx="6" ry="12" transform="rotate(315 -17 -17)" fill="#ffb703" />
+              <circle cx="0" cy="0" r="14" fill="#4a2810" />
+              <circle cx="0" cy="0" r="11" fill="#6f3b14" />
+            </g>
+
+            <!-- Candles -->
+            <!-- Candle 1 (Left) -->
+            <g class="cake-candle" id="candleLeft">
+              <rect x="76" y="52" width="6" height="28" rx="2" fill="url(#candleGrad1)" />
+              <line x1="79" y1="52" x2="79" y2="47" stroke="#3d2214" stroke-width="1.2" stroke-linecap="round" />
+              <g class="flame-group" id="flameLeft">
+                <ellipse cx="79" cy="40" rx="14" ry="16" fill="url(#flameAura)" />
+                <path class="flame-core" d="M79 30 C83 36, 85 41, 82 45 C80 47, 78 47, 76 45 C73 41, 75 36, 79 30 Z" fill="url(#flameGrad)" />
+                <ellipse cx="79" cy="44" rx="1.8" ry="1.2" fill="#fff" opacity="0.8" />
+              </g>
+              <path class="smoke-wisp" id="smokeLeft" d="M79 46 Q75 36 82 26 T77 14" fill="none" stroke="rgba(200,190,185,0.7)" stroke-width="1.6" stroke-linecap="round" opacity="0" />
+            </g>
+
+            <!-- Candle 2 (Center - Tallest) -->
+            <g class="cake-candle" id="candleCenter">
+              <rect x="97" y="44" width="6" height="34" rx="2" fill="url(#candleGrad2)" />
+              <line x1="100" y1="44" x2="100" y2="39" stroke="#3d2214" stroke-width="1.2" stroke-linecap="round" />
+              <g class="flame-group" id="flameCenter">
+                <ellipse cx="100" cy="31" rx="16" ry="18" fill="url(#flameAura)" />
+                <path class="flame-core" d="M100 20 C105 27, 107 33, 103 37 C101 39, 99 39, 97 37 C93 33, 95 27, 100 20 Z" fill="url(#flameGrad)" />
+                <ellipse cx="100" cy="36" rx="2" ry="1.4" fill="#fff" opacity="0.8" />
+              </g>
+              <path class="smoke-wisp" id="smokeCenter" d="M100 38 Q96 28 103 18 T98 6" fill="none" stroke="rgba(200,190,185,0.7)" stroke-width="1.6" stroke-linecap="round" opacity="0" />
+            </g>
+
+            <!-- Candle 3 (Right) -->
+            <g class="cake-candle" id="candleRight">
+              <rect x="118" y="52" width="6" height="28" rx="2" fill="url(#candleGrad1)" />
+              <line x1="121" y1="52" x2="121" y2="47" stroke="#3d2214" stroke-width="1.2" stroke-linecap="round" />
+              <g class="flame-group" id="flameRight">
+                <ellipse cx="121" cy="40" rx="14" ry="16" fill="url(#flameAura)" />
+                <path class="flame-core" d="M121 30 C125 36, 127 41, 124 45 C122 47, 120 47, 118 45 C115 41, 117 36, 121 30 Z" fill="url(#flameGrad)" />
+                <ellipse cx="121" cy="44" rx="1.8" ry="1.2" fill="#fff" opacity="0.8" />
+              </g>
+              <path class="smoke-wisp" id="smokeRight" d="M121 46 Q117 36 124 26 T119 14" fill="none" stroke="rgba(200,190,185,0.7)" stroke-width="1.6" stroke-linecap="round" opacity="0" />
+            </g>
+          </svg>
+        </div>
+
+        <!-- Wish granted toast -->
+        <div class="cake__toast" id="cakeToast">
+          <p class="toast__line1">&#x2728; Wish Made! &#x2728;</p>
+          <p class="toast__line2">May your year bloom bright with joy and sunflowers &#x1F33B;</p>
+          <div class="toast__btns">
+            <button class="toast__btn toast__btn--memories" id="toastMemoriesBtn" type="button">📸 Memories</button>
+            <button class="toast__btn toast__btn--lantern" id="toastLanternBtn" type="button">🏮 Release Lantern</button>
+            <button class="toast__btn toast__btn--letter" id="toastLetterBtn" type="button">💌 Read Letter</button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Sparkle & Confetti particle container -->
+      <div class="cake-confetti" id="cakeConfetti" aria-hidden="true"></div>
     </div>
 
     <!-- Play the film again once it has settled. -->
@@ -218,8 +413,167 @@
     </div>
   </main>
 
+  <!-- PHOTO MEMORIES ALBUM MODAL (top-level overlay) -->
+  <div class="gallery-modal" id="galleryModal" aria-hidden="true" role="dialog" aria-label="Birthday Memories Photo Album">
+    <div class="gallery-backdrop" id="galleryBackdrop"></div>
+    
+    <div class="gallery-container">
+      <button class="gallery-close" id="galleryClose" type="button" aria-label="Close memories album">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+          <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" fill="currentColor"/>
+        </svg>
+      </button>
+      
+      <div class="polaroid-wrapper" id="polaroidWrapper">
+        <!-- Physical stack layers behind the card -->
+        <div class="polaroid-stack-layer polaroid-stack-layer--1" aria-hidden="true"></div>
+        <div class="polaroid-stack-layer polaroid-stack-layer--2" aria-hidden="true"></div>
+
+        <div class="polaroid-tape" aria-hidden="true">
+          <span class="tape-flower">&#x1F33B;</span>
+        </div>
+        
+        <div class="polaroid-card" id="polaroidCard">
+          <div class="polaroid-corner-clip" aria-hidden="true"></div>
+          <div class="polaroid-img-frame">
+            <img class="polaroid-img" id="polaroidImg" src="/photos/photo2.jpg" alt="Birthday memory" />
+            <div class="polaroid-glare" id="polaroidGlare" aria-hidden="true"></div>
+          </div>
+          
+          <div class="polaroid-footer">
+            <div class="polaroid-meta">
+              <p class="polaroid-caption" id="polaroidCaption">Dancing with the ocean breeze &#x1F30A;&#x1F338;</p>
+              <p class="polaroid-subnote" id="polaroidSubnote">Memories by the Shore &bull; Pure Bliss</p>
+            </div>
+            
+            <div class="polaroid-actions">
+              <button class="polaroid-like-btn" id="polaroidLikeBtn" type="button" aria-label="Send love to this photo">
+                <span class="like-heart">&#x1F496;</span>
+                <span class="like-count" id="polaroidLikeCount">1</span>
+              </button>
+            </div>
+          </div>
+          <div class="polaroid-stamp" id="polaroidStamp" aria-hidden="true">&#x1F33B; Seaside Sunshine</div>
+        </div>
+
+        <!-- Floating heart bursts container -->
+        <div class="polaroid-bursts" id="polaroidBursts" aria-hidden="true"></div>
+      </div>
+
+      <!-- Navigation controls -->
+      <div class="gallery-controls">
+        <button class="gallery-nav gallery-nav--prev" id="galleryPrev" type="button" aria-label="Previous photo">
+          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+            <path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6z" fill="currentColor"/>
+          </svg>
+        </button>
+        
+        <div class="gallery-dots" id="galleryDots">
+          <button class="gallery-dot is-active" data-index="0" aria-label="Photo 1" type="button"></button>
+          <button class="gallery-dot" data-index="1" aria-label="Photo 2" type="button"></button>
+          <button class="gallery-dot" data-index="2" aria-label="Photo 3" type="button"></button>
+          <button class="gallery-dot" data-index="3" aria-label="Photo 4" type="button"></button>
+        </div>
+
+        <button class="gallery-nav gallery-nav--next" id="galleryNext" type="button" aria-label="Next photo">
+          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+            <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z" fill="currentColor"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- WAX-SEALED SECRET LETTER MODAL -->
+  <div class="letter-modal" id="letterModal" aria-hidden="true" role="dialog" aria-label="A Birthday Letter for Dava Sri">
+    <div class="letter-backdrop" id="letterBackdrop"></div>
+    <div class="letter-dialog">
+      <button class="letter-close" id="letterCloseBtn" type="button" aria-label="Close letter">
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+          <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" fill="currentColor"/>
+        </svg>
+      </button>
+
+      <!-- Envelope state (before unsealed) -->
+      <div class="letter-envelope" id="letterEnvelope">
+        <div class="envelope-ribbon"></div>
+        <div class="envelope-flap"></div>
+        <div class="envelope-seal" id="letterSeal" role="button" tabindex="0" aria-label="Break wax seal to open letter">
+          <span class="seal-flower">🌻</span>
+          <span class="seal-ring"></span>
+          <span class="seal-text">FOR DAVA SRI</span>
+        </div>
+        <p class="envelope-prompt">Tap the wax seal to open ✦</p>
+      </div>
+
+      <!-- Unfolded parchment letter -->
+      <div class="letter-parchment" id="letterParchment" hidden>
+        <div class="parchment-border"></div>
+        <div class="parchment-stamp">🌻 Dava Sri 🌻</div>
+        <h2 class="parchment-title">A Birthday Letter for Dava Sri</h2>
+        <div class="parchment-divider">❦ &bull; ❦ &bull; ❦</div>
+        <div class="parchment-content">
+          <p class="parchment-salutation">Dearest Dava Sri,</p>
+          <p>On this beautiful day celebrating you, may your entire world bloom as bright, warm, and radiant as a boundless field of golden sunflowers basking under clear blue skies.</p>
+          <p>May every path you walk lead to joyful surprises, genuine laughter, and dreams that unfold into wondrous realities. Your grace, positive energy, and radiant smile bring true sunshine into the lives of everyone lucky enough to know you.</p>
+          <p>Never stop smiling, never stop dreaming big, and always remember how wonderfully unique and cherished you are.</p>
+          <p class="parchment-wish">May every wish whispered to the stars today come true for you!</p>
+          <div class="parchment-signoff">
+            <p class="signoff-sub">With all the sweetest birthday wishes,</p>
+            <p class="signoff-signature">Happy Birthday Dava Sri! 🌻✨🎂</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SKY LANTERN RELEASE MODAL -->
+  <div class="lantern-modal" id="lanternModal" aria-hidden="true" role="dialog" aria-label="Release a Birthday Wish Lantern">
+    <div class="lantern-backdrop" id="lanternBackdrop"></div>
+    <div class="lantern-dialog">
+      <button class="lantern-close" id="lanternCloseBtn" type="button" aria-label="Close wish dialog">
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+          <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" fill="currentColor"/>
+        </svg>
+      </button>
+
+      <div class="lantern-preview-box">
+        <div class="floating-lantern-preview">
+          <div class="lantern-glow"></div>
+          <div class="lantern-body">
+            <div class="lantern-inner-flame"></div>
+            <span class="lantern-mark">🌻</span>
+          </div>
+          <div class="lantern-tag" id="lanternTagPreview">Dava Sri ✦ Endless Sunshine</div>
+        </div>
+      </div>
+
+      <h2 class="lantern-title">Release a Wish Lantern 🏮</h2>
+      <p class="lantern-subtitle">Choose a blessing or write a personal wish for Dava Sri to float into the starry sky:</p>
+
+      <div class="lantern-presets" id="lanternPresets">
+        <button class="preset-btn is-selected" type="button" data-wish="🌻 Bright Smiles & Golden Sunshine">🌻 Bright Sunshine &amp; Smiles</button>
+        <button class="preset-btn" type="button" data-wish="✨ Dreams Blooming Higher Than the Sky">✨ Blooming Dreams</button>
+        <button class="preset-btn" type="button" data-wish="💖 Love, Health & Everlasting Joy">💖 Love &amp; Everlasting Joy</button>
+        <button class="preset-btn" type="button" data-wish="🎂 Sweetest Year of Beautiful Adventures">🎂 Sweet Adventures Ahead</button>
+      </div>
+
+      <div class="lantern-input-group">
+        <input type="text" class="lantern-input" id="lanternCustomInput" placeholder="Or write your own wish for Dava Sri..." maxlength="50" />
+      </div>
+
+      <button class="lantern-submit-btn" id="lanternSubmitBtn" type="button">
+        <span>Light &amp; Release into the Sky</span>
+        <span class="submit-sparkle">✨</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- MAGICAL SPARKLER & STARDUST CURSOR CANVAS -->
+  <canvas id="cursorCanvas" class="cursor-canvas" aria-hidden="true"></canvas>
+
   <!-- Accessible equivalent for reduced-motion + screen readers. -->
-  <p class="sr-only">Happy Birthday. Here&rsquo;s to a wonderful year ahead.</p>
+  <p class="sr-only">Happy Birthday Dava Sri. Here&rsquo;s to a wonderful year ahead.</p>
 
   <script type="module" src="./birthday.js"></script>
 </body>
