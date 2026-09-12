@@ -16,10 +16,10 @@
   <link rel="stylesheet" href="./birthday.css" />
 </head>
 <body>
-  <!-- CELESTE / MUSIC BOX PLAYER TOGGLE -->
-  <button class="music-box-btn" id="musicBoxBtn" type="button" aria-label="Play Birthday Music Box Melody" title="Play Birthday Music Box Melody">
+  <!-- BIRTHDAY SONG PLAYER TOGGLE -->
+  <button class="music-box-btn" id="musicBoxBtn" type="button" aria-label="Play Happy Birthday Song" title="Play Happy Birthday Song">
     <span class="music-box-icon" aria-hidden="true">🎵</span>
-    <span class="music-box-text">Music Box</span>
+    <span class="music-box-text">Birthday Song</span>
     <span class="music-box-bars" aria-hidden="true">
       <span class="bar bar--1"></span>
       <span class="bar bar--2"></span>
@@ -38,6 +38,13 @@
 
     <!-- FLOATING SKY LANTERNS CONTAINER -->
     <div id="skyLanterns" class="sky-lanterns-container" aria-hidden="true"></div>
+
+    <!-- CELESTIAL SKY WISH TOAST (Ascending to Stars) -->
+    <div class="sky-wish-toast" id="skyWishToast" aria-hidden="true">
+      <div class="sky-wish-badge">🏮 ✨ 🏮</div>
+      <p class="sky-wish-title">✨ Wish Sent to the Stars! ✨</p>
+      <p class="sky-wish-tag" id="skyWishToastTag">Dava Sri ✦ Bright Smiles &amp; Golden Sunshine</p>
+    </div>
 
     <!-- ACT 1 — THE INVITATION ------------------------------------------------
          A single beating heart on a warm field. It is the only thing the

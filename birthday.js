@@ -1597,12 +1597,10 @@ function resetAll(){
 }
 
 /* ============================================================
-   FEATURE 5: CELESTE / MUSIC BOX SYNTHESIS ("Happy Birthday")
+   FEATURE 5: BIRTHDAY SONG PLAYER ("Happy Birthday")
+   Plays the 30s to 1m20s (50s loop) segment of Happy-Birthday.mp3
    ============================================================ */
 let audioCtx = null;
-let musicBoxMaster = null;
-let isMusicBoxPlaying = false;
-let musicBoxTimeout = null;
 
 function initAudioContext(){
   if (!audioCtx){
@@ -1619,141 +1617,73 @@ function initAudioContext(){
 window.addEventListener('pointerdown', () => { initAudioContext(); }, { once: true });
 window.addEventListener('keydown', () => { initAudioContext(); }, { once: true });
 
-const BDAY_MELODY = [
-  { f: 392.00, d: 0.36, bass: 261.63 }, // G4 (C4 bass)
-  { f: 392.00, d: 0.22 },                // G4
-  { f: 440.00, d: 0.58 },                // A4
-  { f: 392.00, d: 0.58 },                // G4
-  { f: 523.25, d: 0.58 },                // C5
-  { f: 493.88, d: 1.15, bass: 196.00 }, // B4 (G3 bass)
+let bdayAudio = null;
+let isMusicBoxPlaying = false;
 
-  { f: 392.00, d: 0.36 },                // G4
-  { f: 392.00, d: 0.22 },                // G4
-  { f: 440.00, d: 0.58 },                // A4
-  { f: 392.00, d: 0.58 },                // G4
-  { f: 587.33, d: 0.58 },                // D5
-  { f: 523.25, d: 1.15, bass: 261.63 }, // C5 (C4 bass)
+function initAudioElement(){
+  if (!bdayAudio){
+    bdayAudio = new Audio('/happy-birthday.mp3');
+    bdayAudio.loop = true;
+    bdayAudio.preload = 'auto';
 
-  { f: 392.00, d: 0.36 },                // G4
-  { f: 392.00, d: 0.22 },                // G4
-  { f: 783.99, d: 0.58, bass: 261.63 }, // G5 (C4 bass)
-  { f: 659.25, d: 0.58 },                // E5
-  { f: 523.25, d: 0.58 },                // C5
-  { f: 493.88, d: 0.58 },                // B4
-  { f: 440.00, d: 1.15, bass: 349.23 }, // A4 (F3 bass)
+    // If loaded file is full duration (>65s), maintain 30s to 80s (1m20s) playback
+    bdayAudio.addEventListener('timeupdate', () => {
+      if (bdayAudio.duration > 65){
+        if (bdayAudio.currentTime < 30){
+          bdayAudio.currentTime = 30;
+        } else if (bdayAudio.currentTime >= 80){
+          bdayAudio.currentTime = 30;
+        }
+      }
+    });
 
-  { f: 698.46, d: 0.36 },                // F5
-  { f: 698.46, d: 0.22 },                // F5
-  { f: 659.25, d: 0.58 },                // E5
-  { f: 523.25, d: 0.58 },                // C5
-  { f: 587.33, d: 0.58, bass: 196.00 }, // D5 (G3 bass)
-  { f: 523.25, d: 1.70, bass: 261.63 }  // C5 (C4 bass)
-];
+    bdayAudio.addEventListener('ended', () => {
+      if (bdayAudio.duration > 65) bdayAudio.currentTime = 30;
+      bdayAudio.play().catch(() => {});
+    });
 
-function playChimeNote(freq, dur, bassFreq = 0){
-  if (!audioCtx || !musicBoxMaster) return;
-  const now = audioCtx.currentTime;
+    bdayAudio.addEventListener('play', () => {
+      isMusicBoxPlaying = true;
+      const btn = $('musicBoxBtn');
+      if (btn) btn.classList.add('is-playing');
+    });
 
-  const osc1 = audioCtx.createOscillator();
-  const gain1 = audioCtx.createGain();
-  osc1.type = 'sine';
-  osc1.frequency.setValueAtTime(freq, now);
-
-  const osc2 = audioCtx.createOscillator();
-  const gain2 = audioCtx.createGain();
-  osc2.type = 'sine';
-  osc2.frequency.setValueAtTime(freq * 2.756, now);
-
-  const osc3 = audioCtx.createOscillator();
-  const gain3 = audioCtx.createGain();
-  osc3.type = 'triangle';
-  osc3.frequency.setValueAtTime(freq * 5.404, now);
-
-  const decay = Math.max(1.3, dur * 2.4);
-  gain1.gain.setValueAtTime(0.32, now);
-  gain1.gain.exponentialRampToValueAtTime(0.0001, now + decay);
-
-  gain2.gain.setValueAtTime(0.08, now);
-  gain2.gain.exponentialRampToValueAtTime(0.0001, now + (decay * 0.45));
-
-  gain3.gain.setValueAtTime(0.025, now);
-  gain3.gain.exponentialRampToValueAtTime(0.0001, now + (decay * 0.22));
-
-  osc1.connect(gain1);
-  osc2.connect(gain2);
-  osc3.connect(gain3);
-
-  gain1.connect(musicBoxMaster);
-  gain2.connect(musicBoxMaster);
-  gain3.connect(musicBoxMaster);
-
-  osc1.start(now);
-  osc2.start(now);
-  osc3.start(now);
-
-  osc1.stop(now + decay);
-  osc2.stop(now + decay);
-  osc3.stop(now + decay);
-
-  if (bassFreq){
-    const oscBass = audioCtx.createOscillator();
-    const gainBass = audioCtx.createGain();
-    oscBass.type = 'sine';
-    oscBass.frequency.setValueAtTime(bassFreq, now);
-    gainBass.gain.setValueAtTime(0.18, now);
-    gainBass.gain.exponentialRampToValueAtTime(0.0001, now + 1.8);
-    oscBass.connect(gainBass);
-    gainBass.connect(musicBoxMaster);
-    oscBass.start(now);
-    oscBass.stop(now + 1.8);
+    bdayAudio.addEventListener('pause', () => {
+      isMusicBoxPlaying = false;
+      const btn = $('musicBoxBtn');
+      if (btn) btn.classList.remove('is-playing');
+    });
   }
 }
 
 function startMusicBox(){
+  initAudioElement();
   initAudioContext();
-  if (!audioCtx) return;
+  if (!bdayAudio) return;
 
-  if (!musicBoxMaster){
-    musicBoxMaster = audioCtx.createGain();
-    const filter = audioCtx.createBiquadFilter();
-    filter.type = 'lowpass';
-    filter.frequency.value = 3400;
-    musicBoxMaster.connect(filter);
-    filter.connect(audioCtx.destination);
+  if (bdayAudio.duration > 65 && bdayAudio.currentTime < 30){
+    bdayAudio.currentTime = 30;
   }
 
-  musicBoxMaster.gain.cancelScheduledValues(audioCtx.currentTime);
-  musicBoxMaster.gain.setValueAtTime(musicBoxMaster.gain.value, audioCtx.currentTime);
-  musicBoxMaster.gain.linearRampToValueAtTime(0.85, audioCtx.currentTime + 0.3);
-
-  isMusicBoxPlaying = true;
-  const btn = $('musicBoxBtn');
-  if (btn) btn.classList.add('is-playing');
-
-  let noteIdx = 0;
-  function scheduleNext(){
-    if (!isMusicBoxPlaying) return;
-    const note = BDAY_MELODY[noteIdx];
-    playChimeNote(note.f, note.d, note.bass || 0);
-
-    noteIdx = (noteIdx + 1) % BDAY_MELODY.length;
-    const delay = (noteIdx === 0) ? (note.d + 1.5) * 1000 : (note.d * 1000);
-    musicBoxTimeout = setTimeout(scheduleNext, delay);
+  const p = bdayAudio.play();
+  if (p !== undefined){
+    p.then(() => {
+      isMusicBoxPlaying = true;
+      const btn = $('musicBoxBtn');
+      if (btn) btn.classList.add('is-playing');
+    }).catch(() => {
+      // Audio playback waiting for user gesture
+    });
   }
-  scheduleNext();
 }
 
 function stopMusicBox(){
+  if (bdayAudio){
+    bdayAudio.pause();
+  }
   isMusicBoxPlaying = false;
-  if (musicBoxTimeout) clearTimeout(musicBoxTimeout);
   const btn = $('musicBoxBtn');
   if (btn) btn.classList.remove('is-playing');
-
-  if (musicBoxMaster && audioCtx){
-    musicBoxMaster.gain.cancelScheduledValues(audioCtx.currentTime);
-    musicBoxMaster.gain.setValueAtTime(musicBoxMaster.gain.value, audioCtx.currentTime);
-    musicBoxMaster.gain.linearRampToValueAtTime(0.0001, audioCtx.currentTime + 0.4);
-  }
 }
 
 function toggleMusicBox(){
@@ -2363,63 +2293,135 @@ function updateLanternTagPreview(text){
   }
 }
 
+function playLanternAscentChimes(){
+  initAudioContext();
+  if (!audioCtx) return;
+  const notes = [523.25, 659.25, 783.99, 987.77, 1046.50];
+  notes.forEach((f, idx) => {
+    setTimeout(() => {
+      if (!audioCtx) return;
+      const now = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const osc2 = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(f, now);
+      osc2.type = 'triangle';
+      osc2.frequency.setValueAtTime(f * 2, now);
+
+      gain.gain.setValueAtTime(0.2, now);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.4);
+
+      osc.connect(gain);
+      osc2.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      osc.start(now);
+      osc2.start(now);
+      osc.stop(now + 1.4);
+      osc2.stop(now + 1.4);
+    }, idx * 110);
+  });
+}
+
+function createSingleLantern(wishText, xPercent, isCompanion = false, delayMs = 0){
+  setTimeout(() => {
+    const container = $('skyLanterns');
+    if (!container) return;
+
+    const lantern = document.createElement('div');
+    lantern.className = 'sky-lantern' + (isCompanion ? ' sky-lantern--companion' : '');
+
+    const inner = document.createElement('div');
+    inner.className = 'sky-lantern__inner';
+
+    const base = document.createElement('div');
+    base.className = 'sky-lantern__base';
+
+    lantern.appendChild(inner);
+    lantern.appendChild(base);
+
+    if (!isCompanion){
+      const tag = document.createElement('div');
+      tag.className = 'sky-lantern__tag';
+      tag.textContent = '🌻 Dava Sri ✦ ' + wishText;
+      lantern.appendChild(tag);
+    }
+
+    lantern.style.left = (xPercent + rand(-3, 3)) + 'vw';
+    lantern.style.bottom = (isCompanion ? rand(10, 16) : 14) + '%';
+    lantern.style.opacity = '0';
+    lantern.style.transform = 'scale(' + (isCompanion ? rand(0.7, 0.9) : 1.1) + ')';
+
+    container.appendChild(lantern);
+
+    gsap.to(lantern, {
+      opacity: 1,
+      duration: 0.8,
+      ease: 'power2.out'
+    });
+
+    const floatDuration = isCompanion ? rand(10, 14) : 11;
+    const driftX = rand(-60, 60);
+
+    gsap.to(lantern, {
+      y: -(window.innerHeight * 0.95 + 120),
+      duration: floatDuration,
+      ease: 'power1.inOut',
+      onComplete: () => {
+        if (lantern.parentNode) lantern.parentNode.removeChild(lantern);
+      }
+    });
+
+    gsap.to(lantern, {
+      x: driftX,
+      duration: rand(3.5, 5.5),
+      repeat: -1,
+      yoyo: true,
+      ease: 'sine.inOut'
+    });
+
+    gsap.to(lantern, {
+      scale: isCompanion ? 0.25 : 0.4,
+      opacity: 0.5,
+      delay: floatDuration * 0.55,
+      duration: floatDuration * 0.45,
+      ease: 'power2.in'
+    });
+  }, delayMs);
+}
+
 function spawnSkyLantern(wishText){
   const container = $('skyLanterns');
   if (!container) return;
 
-  const lantern = document.createElement('div');
-  lantern.className = 'sky-lantern';
+  const skyToast = $('skyWishToast');
+  const skyToastTag = $('skyWishToastTag');
+  if (skyToast && skyToastTag){
+    skyToastTag.textContent = 'Dava Sri ✦ ' + wishText;
+    skyToast.classList.add('is-active');
+    setTimeout(() => {
+      skyToast.classList.remove('is-active');
+    }, 6000);
+  }
 
-  const inner = document.createElement('div');
-  inner.className = 'sky-lantern__inner';
+  playLanternAscentChimes();
 
-  const base = document.createElement('div');
-  base.className = 'sky-lantern__base';
+  createSingleLantern(wishText, 50, false, 0);
+  createSingleLantern(wishText, 24, true, 250);
+  createSingleLantern(wishText, 38, true, 550);
+  createSingleLantern(wishText, 64, true, 380);
+  createSingleLantern(wishText, 78, true, 700);
 
-  const tag = document.createElement('div');
-  tag.className = 'sky-lantern__tag';
-  tag.textContent = 'Dava Sri ✦ ' + wishText;
-
-  lantern.appendChild(inner);
-  lantern.appendChild(base);
-  lantern.appendChild(tag);
-
-  const startX = rand(15, 85);
-  lantern.style.left = startX + 'vw';
-  lantern.style.bottom = '-80px';
-  lantern.style.transform = 'scale(' + rand(0.85, 1.1) + ')';
-
-  container.appendChild(lantern);
-
-  playMagicalChime();
-
-  const floatDuration = rand(15, 22);
-  const driftX = rand(-70, 70);
-
-  gsap.to(lantern, {
-    y: -(window.innerHeight + 160),
-    duration: floatDuration,
-    ease: 'power1.inOut',
-    onComplete: () => {
-      if (lantern.parentNode) lantern.parentNode.removeChild(lantern);
+  setTimeout(() => {
+    if (typeof createFireworkBurst === 'function'){
+      const W = window.innerWidth;
+      const H = window.innerHeight;
+      createFireworkBurst(W * 0.35, H * 0.28, 'willow');
+      createFireworkBurst(W * 0.65, H * 0.25, 'sunflower');
     }
-  });
-
-  gsap.to(lantern, {
-    x: driftX,
-    duration: rand(4, 7),
-    repeat: -1,
-    yoyo: true,
-    ease: 'sine.inOut'
-  });
-
-  gsap.to(lantern, {
-    scale: 0.32,
-    opacity: 0.65,
-    delay: floatDuration * 0.5,
-    duration: floatDuration * 0.5,
-    ease: 'power2.in'
-  });
+  }, 2800);
 }
 
 function setupLanterns(){
