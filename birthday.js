@@ -423,7 +423,7 @@ function buildScene(){
 
   const wide = W / H > 1.2;
   cx = W * (wide ? 0.57 : 0.5);
-  cy = H * (wide ? 0.37 : 0.38);
+  cy = H * (wide ? 0.37 : 0.31);
   ry = Math.min(H * (wide ? 0.33 : 0.33), W * 0.34);
   rx = ry * 1.16;
   groundY = H * 0.93;

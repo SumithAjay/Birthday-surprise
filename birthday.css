@@ -1031,19 +1031,18 @@ body{
   .cake-wrapper{
     right:50%;
     transform:translateX(50%) translateY(24px) scale(.88);
-    bottom:14px;
+    bottom:clamp(22px, 4vh, 36px);
   }
   .cake-wrapper.is-in{
     transform:translateX(50%) translateY(0) scale(.88);
   }
-  /* On mobile: Toast floats at the top so it NEVER blocks the wish or sunflowers! */
   .cake__toast{
-    position:fixed;
-    top:clamp(48px, 7.5vh, 66px);
-    bottom:auto;
+    position:absolute;
+    bottom:calc(100% + 12px);
+    top:auto;
     left:50%;
-    transform:translateX(-50%) translateY(-14px) scale(0.92);
-    width:min(90vw, 360px);
+    transform:translateX(-50%) translateY(12px) scale(.9);
+    width:min(88vw, 340px);
     white-space:normal;
     box-shadow:0 14px 40px rgba(120,20,50,.35), 0 0 25px rgba(255,200,100,.4);
     z-index:999;
@@ -1056,7 +1055,7 @@ body{
     transform:translateX(-50%);
     text-align:center;
     max-width:92%;
-    bottom:clamp(100px, 16vh, 140px);
+    bottom:clamp(140px, 23vh, 185px);
     width:max-content;
   }
   .wish::before{
