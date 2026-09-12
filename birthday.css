@@ -1090,8 +1090,9 @@ body{
     font-size:11.5px;
   }
   .replay{
-    right:14px; bottom:14px;
-    padding:8px 13px 8px 10px;
+    left:14px; top:14px;
+    right:auto; bottom:auto;
+    padding:6px 12px 6px 10px;
     font-size:11.5px;
   }
   .polaroid-card{
@@ -1104,20 +1105,26 @@ body{
    REPLAY
    ============================================================ */
 .replay{
-  position:absolute; right:20px; bottom:18px; z-index:15;
+  position:fixed; left:20px; top:18px; z-index:9000;
+  right:auto; bottom:auto;
   display:inline-flex; align-items:center; gap:7px;
-  padding:9px 15px 9px 12px; border-radius:999px;
+  padding:7px 14px 7px 11px; border-radius:999px;
   font:600 12.5px/1 "Cormorant Garamond", Georgia, serif; letter-spacing:.12em; text-transform:uppercase;
-  color:#8a4a5a; background:rgba(255,248,242,.72);
-  border:1px solid rgba(150,60,80,.18);
-  box-shadow:0 6px 20px -8px rgba(120,20,50,.4);
-  backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
-  cursor:pointer; opacity:0; transform:translateY(8px);
-  transition:opacity .5s ease, transform .5s var(--ease-out), background .3s ease;
+  color:#8a4a5a; background:rgba(255,248,242,.85);
+  border:1.5px solid rgba(212, 160, 80, 0.45);
+  box-shadow:0 4px 18px rgba(160, 90, 40, 0.18), 0 0 12px rgba(255, 215, 0, 0.25);
+  backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
+  cursor:pointer; opacity:0; transform:translateY(-8px);
+  transition:opacity .5s ease, transform .5s var(--ease-out), background .3s ease, border-color .3s ease, box-shadow .3s ease;
 }
 .replay.is-shown{ opacity:1; transform:translateY(0); }
-.replay:hover{ background:rgba(255,252,248,.92); }
-.replay svg{ opacity:.8; }
+.replay:hover{
+  background:rgba(255,252,248,.96);
+  border-color:rgba(212, 160, 80, 0.85);
+  transform:translateY(-1px) scale(1.03);
+  box-shadow:0 6px 22px rgba(180, 100, 40, 0.25), 0 0 16px rgba(255, 215, 0, 0.45);
+}
+.replay svg{ opacity:.85; }
 
 /* ============================================================
    THE LENS — grain + vignette over every act
@@ -1993,6 +2000,7 @@ body{
 
 /* Mobile responsive adjustments */
 @media (max-width: 600px){
+  .replay{ top:12px; left:12px; padding:6px 11px; }
   .music-box-btn{ top:12px; right:12px; padding:6px 11px; }
   .music-box-text{ display:none; }
   .wish__actions{ gap:6px; }
