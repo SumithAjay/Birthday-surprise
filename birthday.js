@@ -119,8 +119,8 @@ const PHOTOS = [
   {
     src: '/photos/photo6.jpg',
     caption: 'Blooming bright amidst golden sunflowers \uD83C\uDF3B\u2728',
-    subnote: 'Sunflower Meadow \u2022 Pure Sunshine Dava Sri',
-    stamp: '\uD83C\uDF3B Sunflower Queen Dava Sri',
+    subnote: 'Sunflower Meadow \u2022 Pure Sunshine Deva Sri',
+    stamp: '\uD83C\uDF3B Sunflower Queen Deva Sri',
     position: 'center 30%'
   }
 ];
@@ -517,7 +517,7 @@ function buildScene(){
   for (let i = 0; i < sunflowerCount; i++){
     let sx;
     if (i % 3 === 0){
-      sx = rand(W * 0.02, W * 0.40); // Left meadow framing Dava Sri's wish
+      sx = rand(W * 0.02, W * 0.40); // Left meadow framing Deva Sri's wish
     } else if (i % 3 === 1){
       sx = rand(W * 0.60, W * 0.98); // Right meadow framing celebration cake
     } else {
@@ -1883,7 +1883,7 @@ function animateCursor(){
 }
 
 /* ============================================================
-   FEATURE 3: MIDNIGHT FIREWORKS SPECTACULAR ("DAVA SRI")
+   FEATURE 3: MIDNIGHT FIREWORKS SPECTACULAR ("DEVA SRI")
    ============================================================ */
 let fwCanvas = null;
 let fwCtx = null;
@@ -1941,7 +1941,7 @@ function launchRocket(startX, startY, targetX, targetY, type, onExplode){
 }
 
 function createFireworkBurst(cx, cy, type = 'willow'){
-  playFireworkSound(type === 'davaSri');
+  playFireworkSound(type === 'devaSri');
   const paletteGold = ['#fff275', '#ffb703', '#fb8500', '#ffffff', '#ffd166'];
   const paletteRose = ['#ff4d6d', '#ff758f', '#ffb3c1', '#fff0f3', '#ff8fa3'];
 
@@ -2013,7 +2013,7 @@ function createFireworkBurst(cx, cy, type = 'willow'){
         flicker: false
       });
     }
-  } else if (type === 'davaSri'){
+  } else if (type === 'devaSri'){
     const LETTER_MATRICES = {
       'D': [
         [1,1,1,0],
@@ -2024,6 +2024,24 @@ function createFireworkBurst(cx, cy, type = 'willow'){
         [1,0,0,1],
         [1,1,1,0]
       ],
+      'E': [
+        [1,1,1,1],
+        [1,0,0,0],
+        [1,0,0,0],
+        [1,1,1,0],
+        [1,0,0,0],
+        [1,0,0,0],
+        [1,1,1,1]
+      ],
+      'V': [
+        [1,0,0,0,1],
+        [1,0,0,0,1],
+        [1,0,0,0,1],
+        [0,1,0,1,0],
+        [0,1,0,1,0],
+        [0,1,0,1,0],
+        [0,0,1,0,0]
+      ],
       'A': [
         [0,1,1,0],
         [1,0,0,1],
@@ -2032,13 +2050,6 @@ function createFireworkBurst(cx, cy, type = 'willow'){
         [1,0,0,1],
         [1,0,0,1],
         [1,0,0,1]
-      ],
-      'V': [
-        [1,0,0,0,1],
-        [1,0,0,0,1],
-        [0,1,0,1,0],
-        [0,1,0,1,0],
-        [0,0,1,0,0]
       ],
       'S': [
         [0,1,1,1],
@@ -2069,7 +2080,7 @@ function createFireworkBurst(cx, cy, type = 'willow'){
       ]
     };
 
-    const word1 = ['D', 'A', 'V', 'A'];
+    const word1 = ['D', 'E', 'V', 'A'];
     const word2 = ['S', 'R', 'I'];
     const dotSpacing = Math.min(13, Math.max(7, window.innerWidth / 70));
     
@@ -2256,7 +2267,7 @@ function launchMidnightFireworks(){
   }, 3100);
 
   setTimeout(() => {
-    launchRocket(W * 0.5, H, W * 0.5, H * 0.22, 'davaSri');
+    launchRocket(W * 0.5, H, W * 0.5, H * 0.22, 'devaSri');
   }, 4500);
 }
 
@@ -2289,7 +2300,7 @@ function closeLanternModal(){
 function updateLanternTagPreview(text){
   const tag = $('lanternTagPreview');
   if (tag){
-    tag.textContent = 'Dava Sri ✦ ' + (text || 'Pure Joy');
+    tag.textContent = 'Deva Sri ✦ ' + (text || 'Pure Joy');
   }
 }
 
@@ -2345,7 +2356,7 @@ function createSingleLantern(wishText, xPercent, isCompanion = false, delayMs = 
     if (!isCompanion){
       const tag = document.createElement('div');
       tag.className = 'sky-lantern__tag';
-      tag.textContent = '🌻 Dava Sri ✦ ' + wishText;
+      tag.textContent = '🌻 Deva Sri ✦ ' + wishText;
       lantern.appendChild(tag);
     }
 
@@ -2399,7 +2410,7 @@ function spawnSkyLantern(wishText){
   const skyToast = $('skyWishToast');
   const skyToastTag = $('skyWishToastTag');
   if (skyToast && skyToastTag){
-    skyToastTag.textContent = 'Dava Sri ✦ ' + wishText;
+    skyToastTag.textContent = 'Deva Sri ✦ ' + wishText;
     skyToast.classList.add('is-active');
     setTimeout(() => {
       skyToast.classList.remove('is-active');
