@@ -781,87 +781,14 @@ function drawRested(){
 
 function showWish(on){ wishEl.classList.toggle('is-in', on); }
 
-let micStream = null;
-let micAudioCtx = null;
-let micBlowActive = false;
-
-function initMicBlowDetector(){
-  if (cakeBlown || micBlowActive) return;
-  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
-
-  micBlowActive = true;
-  navigator.mediaDevices.getUserMedia({ audio: true, video: false })
-    .then(stream => {
-      if (cakeBlown){
-        stream.getTracks().forEach(t => t.stop());
-        return;
-      }
-      micStream = stream;
-      const AudioCtx = window.AudioContext || window.webkitAudioContext;
-      if (!AudioCtx) return;
-      micAudioCtx = new AudioCtx();
-      const source = micAudioCtx.createMediaStreamSource(stream);
-      const analyser = micAudioCtx.createAnalyser();
-      analyser.fftSize = 256;
-      source.connect(analyser);
-
-      const dataArray = new Uint8Array(analyser.frequencyBinCount);
-      let blowTicks = 0;
-
-      function checkMic(){
-        if (cakeBlown || !micBlowActive){
-          stopMicBlowDetector();
-          return;
-        }
-        analyser.getByteFrequencyData(dataArray);
-        let lowEnergy = 0;
-        for (let i = 1; i <= 8; i++){
-          lowEnergy += dataArray[i];
-        }
-        const avg = lowEnergy / 8;
-        if (avg > 72){
-          blowTicks++;
-          if (blowTicks >= 3){
-            blowCandles();
-            stopMicBlowDetector();
-            return;
-          }
-        } else {
-          blowTicks = Math.max(0, blowTicks - 1);
-        }
-        requestAnimationFrame(checkMic);
-      }
-      requestAnimationFrame(checkMic);
-    })
-    .catch(() => {
-      micBlowActive = false;
-    });
-}
-
-function stopMicBlowDetector(){
-  micBlowActive = false;
-  if (micStream){
-    micStream.getTracks().forEach(t => t.stop());
-    micStream = null;
-  }
-  if (micAudioCtx){
-    try { micAudioCtx.close(); } catch(e){}
-    micAudioCtx = null;
-  }
-}
-
 function showCake(on){
   if (cakeWrapper){
     cakeWrapper.classList.toggle('is-in', on);
-    if (on && !cakeBlown){
-      initMicBlowDetector();
-    }
   }
 }
 
 function resetCake(){
   cakeBlown = false;
-  stopMicBlowDetector();
   if (cakeCard){
     cakeCard.classList.remove('is-blown');
     cakeCard.setAttribute('aria-label', 'Interactive Birthday Cake. Click to blow out the candles and make a wish!');
@@ -951,7 +878,6 @@ function blowCandles(){
     return;
   }
   cakeBlown = true;
-  stopMicBlowDetector();
   cue('candles');
   cakeCard.classList.add('is-blown');
   cakeCard.setAttribute('aria-label', 'Candles blown out! Click to view memories.');

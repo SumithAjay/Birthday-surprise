@@ -677,42 +677,6 @@ body{
   pointer-events:none;
   transform:scale(.8);
 }
-
-.cake__blow-hint{
-  position:absolute;
-  top:-34px;
-  left:50%;
-  transform:translateX(-50%);
-  display:inline-flex;
-  align-items:center;
-  gap:6px;
-  padding:5px 14px;
-  border-radius:999px;
-  background:rgba(255,250,242,0.94);
-  border:1px solid rgba(220,150,50,0.5);
-  box-shadow:0 4px 14px rgba(0,0,0,0.22), 0 0 12px rgba(255,190,70,0.35);
-  font:700 12px/1 "Cormorant Garamond", Georgia, serif;
-  letter-spacing:.05em;
-  color:#732a10;
-  white-space:nowrap;
-  pointer-events:none;
-  animation:blowPulse 2s infinite ease-in-out;
-  transition:opacity 0.4s ease, transform 0.4s ease;
-  z-index:12;
-}
-.cake-card.is-blown .cake__blow-hint{
-  opacity:0;
-  visibility:hidden;
-  transform:translateX(-50%) scale(0.8);
-}
-@keyframes blowPulse{
-  0%, 100%{ transform:translateX(-50%) scale(1); box-shadow:0 4px 14px rgba(0,0,0,0.22); }
-  50%{ transform:translateX(-50%) scale(1.05); box-shadow:0 6px 18px rgba(255,170,40,0.45); }
-}
-.blow-icon{
-  font-size:14px;
-}
-
 /* Wish Toast Message */
 .cake__toast{
   position:absolute;
