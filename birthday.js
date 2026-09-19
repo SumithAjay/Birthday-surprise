@@ -2492,12 +2492,19 @@ function createSingleLantern(wishText, xPercent, isCompanion = false, delayMs = 
       lantern.appendChild(tag);
     }
 
+    const initScale = isCompanion ? rand(0.7, 0.9) : 1.1;
     lantern.style.left = (xPercent + rand(-3, 3)) + 'vw';
     lantern.style.bottom = (isCompanion ? rand(10, 16) : 14) + '%';
     lantern.style.opacity = '0';
-    lantern.style.transform = 'scale(' + (isCompanion ? rand(0.7, 0.9) : 1.1) + ')';
 
     container.appendChild(lantern);
+
+    gsap.set(lantern, {
+      x: 0,
+      y: 0,
+      scale: initScale,
+      rotation: 0
+    });
 
     gsap.to(lantern, {
       opacity: 1,
@@ -2509,7 +2516,7 @@ function createSingleLantern(wishText, xPercent, isCompanion = false, delayMs = 
     const driftX = rand(-60, 60);
 
     gsap.to(lantern, {
-      y: -(window.innerHeight * 0.95 + 120),
+      y: -(window.innerHeight * 1.15 + 160),
       duration: floatDuration,
       ease: 'power1.inOut',
       onComplete: () => {
@@ -2526,8 +2533,16 @@ function createSingleLantern(wishText, xPercent, isCompanion = false, delayMs = 
     });
 
     gsap.to(lantern, {
+      rotation: rand(-3.5, 3.5),
+      duration: rand(2.2, 3.2),
+      repeat: -1,
+      yoyo: true,
+      ease: 'sine.inOut'
+    });
+
+    gsap.to(lantern, {
       scale: isCompanion ? 0.25 : 0.4,
-      opacity: 0.5,
+      opacity: 0.45,
       delay: floatDuration * 0.55,
       duration: floatDuration * 0.45,
       ease: 'power2.in'
@@ -2704,9 +2719,6 @@ function setupLetter(){
 
   const closeBtn = $('letterCloseBtn');
   if (closeBtn) closeBtn.addEventListener('click', () => closeLetterModal(true));
-
-  const backBtn = $('parchmentBackBtn');
-  if (backBtn) backBtn.addEventListener('click', () => closeLetterModal(true));
 
   const backdrop = $('letterBackdrop');
   if (backdrop) backdrop.addEventListener('click', () => closeLetterModal(true));
