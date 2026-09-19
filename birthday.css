@@ -112,6 +112,8 @@ body{
   aspect-ratio:100/92;
   will-change:transform;
   transform-origin:50% 60%;
+  pointer-events:auto;
+  cursor:pointer;
 }
 .target__heart{ position:absolute; inset:0; display:block; }
 
@@ -1116,6 +1118,26 @@ body{
   .polaroid-card{
     width:clamp(250px, 82vw, 300px);
     padding:10px 10px 16px 10px;
+  }
+
+  /* Mobile Compositor & Fill-rate Optimizations */
+  .grade__grain{
+    mix-blend-mode:normal;
+    opacity:.035;
+  }
+  .aurora-glow{
+    filter:blur(14px);
+    transform:translateZ(0);
+    will-change:transform, opacity;
+  }
+  .blob{
+    filter:blur(18px);
+  }
+  .lantern-dialog,
+  .letter-dialog{
+    max-height:88vh;
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
   }
 }
 

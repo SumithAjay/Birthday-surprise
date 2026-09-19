@@ -496,7 +496,8 @@ function buildScene(){
   const sc = (T.branchSpan - T.trunkStart) / (maxT0 - T.trunkStart);
   for (const b of branches) b.t0 = T.trunkStart + (b.t0 - T.trunkStart) * sc;
 
-  const COUNT = Math.round(clamp(rx * ry / 56, 250, 440));
+  const isMobile = W <= 768;
+  const COUNT = isMobile ? Math.round(clamp(rx * ry / 100, 150, 220)) : Math.round(clamp(rx * ry / 56, 250, 440));
   const baseBox = clamp(Math.min(W, H) * 0.115, 30, 74);
   let guard = 0;
   while (hearts.length < COUNT && guard < COUNT * 50){
@@ -513,7 +514,7 @@ function buildScene(){
 
   // --- Meadow Sunflowers (Lush, vibrant golden meadow) ---
   sunflowers = [];
-  const sunflowerCount = Math.round(clamp(W / 36, 28, 48));
+  const sunflowerCount = isMobile ? Math.round(clamp(W / 22, 16, 26)) : Math.round(clamp(W / 36, 28, 48));
   for (let i = 0; i < sunflowerCount; i++){
     let sx;
     if (i % 3 === 0){
@@ -749,7 +750,7 @@ function drawPetals(t, dt){
         idx: p.idx, isSunflower: p.isSunflower,
         rot: p.rot, a: rand(0.7, 0.95)
       });
-      if (rested.length > 115) rested.shift();
+      if (rested.length > (W <= 768 ? 38 : 115)) rested.shift();
       petals.splice(i, 1); continue;
     }
     const a = p.age < 0.3 ? p.age / 0.3 : 1;
@@ -1118,7 +1119,7 @@ function treeFrame(now){
   drawHearts(t);
   updateTwinkles(t, dt);
   drawSunflowers(t);
-  if (t > T.petalT0 && now - lastPetal > 150){ spawnPetal(); spawnPetal(); lastPetal = now; }
+  if (t > T.petalT0 && now - lastPetal > (W <= 768 ? 220 : 150)){ spawnPetal(); if (W > 768) spawnPetal(); lastPetal = now; }
   drawPetals(t, dt);
   drawRested();
   drawFloaters(t, dt, true);
@@ -1341,7 +1342,8 @@ function shotGeom(){
 function spawnStardustField(){
   if (!stardustField) return;
   stardustField.innerHTML = '';
-  const count = 38;
+  const isMobile = window.innerWidth <= 768;
+  const count = isMobile ? 18 : 38;
   for (let i = 0; i < count; i++){
     const p = document.createElement('span');
     p.className = 'stardust-p';
@@ -1369,8 +1371,10 @@ function spawnStardustField(){
 function spawnWishBurst(){
   if (!wishSparkles) return;
   wishSparkles.innerHTML = '';
+  const isMobile = window.innerWidth <= 768;
   const stars = ['🌻', '🎂', '✨', '✦', '⭐', '🍰', '💖', '🌻', '🎂'];
-  for (let i = 0; i < 16; i++){
+  const count = isMobile ? 9 : 16;
+  for (let i = 0; i < count; i++){
     const s = document.createElement('span');
     s.className = 'wish-star';
     s.textContent = pick(stars);
@@ -1538,10 +1542,17 @@ archery.addEventListener('pointermove', (e) => {
   const proj = (e.clientX - startPX) * pullUX + (e.clientY - startPY) * pullUY;
   setDraw(startDraw + proj);
 });
-function endDraw(){
+function endDraw(e){
   if (!drawing) return;
   drawing = false;
-  if (curDraw > maxDraw * 0.26) fire(); else springBack();
+  const dist = e && e.clientX !== undefined ? Math.hypot(e.clientX - startPX, e.clientY - startPY) : 0;
+  if (curDraw > maxDraw * 0.22) {
+    fire();
+  } else if (dist < 10) {
+    autoFire(); // Tap on bow automatically draws and fires
+  } else {
+    springBack();
+  }
 }
 archery.addEventListener('pointerup', endDraw);
 archery.addEventListener('pointercancel', endDraw);
@@ -1549,6 +1560,14 @@ archery.addEventListener('keydown', (e) => {
   if (played) return;
   if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); autoFire(); }
 });
+
+if (target){
+  target.style.pointerEvents = 'auto';
+  target.style.cursor = 'pointer';
+  target.addEventListener('click', () => {
+    if (!played) autoFire();
+  });
+}
 
 /* boot Act 1: reveal the target + bow + hint, then start the beat */
 function enter(){
@@ -1788,8 +1807,9 @@ function initCursorCanvas(){
   }
 
   function onPointerMove(e){
-    const x = e.clientX !== undefined ? e.clientX : (e.touches && e.touches[0] ? e.touches[0].clientX : -1);
-    const y = e.clientY !== undefined ? e.clientY : (e.touches && e.touches[0] ? e.touches[0].clientY : -1);
+    if (e.pointerType === 'touch') return; // Don't track drag on touchscreens to ensure smooth UI
+    const x = e.clientX !== undefined ? e.clientX : -1;
+    const y = e.clientY !== undefined ? e.clientY : -1;
     if (x < 0 || y < 0) return;
 
     if (lastPointerPos.x >= 0){
@@ -1797,7 +1817,7 @@ function initCursorCanvas(){
       const dy = y - lastPointerPos.y;
       const dist = Math.hypot(dx, dy);
       if (dist > 6){
-        const steps = Math.min(6, Math.floor(dist / 14));
+        const steps = Math.min(5, Math.floor(dist / 14));
         for (let s = 1; s <= steps; s++){
           const t = s / steps;
           spawnCursorParticles(lastPointerPos.x + dx * t, lastPointerPos.y + dy * t, 1);
@@ -1812,13 +1832,12 @@ function initCursorCanvas(){
     const x = e.clientX !== undefined ? e.clientX : (e.touches && e.touches[0] ? e.touches[0].clientX : -1);
     const y = e.clientY !== undefined ? e.clientY : (e.touches && e.touches[0] ? e.touches[0].clientY : -1);
     if (x < 0 || y < 0) return;
-    spawnCursorParticles(x, y, 22);
+    const count = e.pointerType === 'touch' ? 7 : 18;
+    spawnCursorParticles(x, y, count);
   }
 
   window.addEventListener('pointermove', onPointerMove, { passive: true });
   window.addEventListener('pointerdown', onPointerDown, { passive: true });
-  window.addEventListener('touchmove', onPointerMove, { passive: true });
-  window.addEventListener('touchstart', onPointerDown, { passive: true });
 }
 
 function animateCursor(){
@@ -1840,15 +1859,19 @@ function animateCursor(){
     }
 
     cursorCtx.save();
-    cursorCtx.globalAlpha = Math.max(0, p.alpha);
     cursorCtx.translate(p.x, p.y);
     cursorCtx.rotate(p.rot);
 
     if (p.type === 'star'){
-      cursorCtx.fillStyle = p.color;
-      cursorCtx.shadowColor = p.color;
-      cursorCtx.shadowBlur = 8;
       const r = p.size;
+      cursorCtx.fillStyle = p.color;
+      // Soft radial glow without costly shadowBlur
+      cursorCtx.globalAlpha = Math.max(0, p.alpha * 0.32);
+      cursorCtx.beginPath();
+      cursorCtx.arc(0, 0, r * 1.8, 0, Math.PI * 2);
+      cursorCtx.fill();
+      // Crisp star
+      cursorCtx.globalAlpha = Math.max(0, p.alpha);
       cursorCtx.beginPath();
       cursorCtx.moveTo(0, -r);
       cursorCtx.quadraticCurveTo(0, 0, r, 0);
@@ -1858,15 +1881,21 @@ function animateCursor(){
       cursorCtx.fill();
     } else if (p.type === 'petal'){
       cursorCtx.fillStyle = '#ffb703';
-      cursorCtx.shadowColor = '#fb8500';
-      cursorCtx.shadowBlur = 6;
+      cursorCtx.globalAlpha = Math.max(0, p.alpha * 0.35);
+      cursorCtx.beginPath();
+      cursorCtx.ellipse(0, 0, p.size * 0.9, p.size * 1.5, 0, 0, Math.PI * 2);
+      cursorCtx.fill();
+      cursorCtx.globalAlpha = Math.max(0, p.alpha);
       cursorCtx.beginPath();
       cursorCtx.ellipse(0, 0, p.size * 0.5, p.size, 0, 0, Math.PI * 2);
       cursorCtx.fill();
     } else {
       cursorCtx.fillStyle = p.color;
-      cursorCtx.shadowColor = p.color;
-      cursorCtx.shadowBlur = 10;
+      cursorCtx.globalAlpha = Math.max(0, p.alpha * 0.3);
+      cursorCtx.beginPath();
+      cursorCtx.arc(0, 0, p.size * 2.2, 0, Math.PI * 2);
+      cursorCtx.fill();
+      cursorCtx.globalAlpha = Math.max(0, p.alpha);
       cursorCtx.beginPath();
       cursorCtx.arc(0, 0, p.size, 0, Math.PI * 2);
       cursorCtx.fill();
@@ -1944,9 +1973,11 @@ function createFireworkBurst(cx, cy, type = 'willow'){
   playFireworkSound(type === 'devaSri');
   const paletteGold = ['#fff275', '#ffb703', '#fb8500', '#ffffff', '#ffd166'];
   const paletteRose = ['#ff4d6d', '#ff758f', '#ffb3c1', '#fff0f3', '#ff8fa3'];
+  const isMobile = window.innerWidth <= 768;
 
   if (type === 'willow'){
-    for (let i = 0; i < 90; i++){
+    const count = isMobile ? 55 : 90;
+    for (let i = 0; i < count; i++){
       const angle = rand(0, Math.PI * 2);
       const spd = rand(1.5, 7.5);
       fwParticles.push({
@@ -1963,7 +1994,8 @@ function createFireworkBurst(cx, cy, type = 'willow'){
       });
     }
   } else if (type === 'heart'){
-    for (let t = 0; t < Math.PI * 2; t += 0.08){
+    const step = isMobile ? 0.12 : 0.08;
+    for (let t = 0; t < Math.PI * 2; t += step){
       const hx = 16 * Math.pow(Math.sin(t), 3);
       const hy = -(13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t));
       const spd = rand(0.22, 0.28);
@@ -1981,8 +2013,9 @@ function createFireworkBurst(cx, cy, type = 'willow'){
       });
     }
   } else if (type === 'sunflower'){
-    for (let i = 0; i < 80; i++){
-      const angle = (i / 80) * Math.PI * 2;
+    const count = isMobile ? 48 : 80;
+    for (let i = 0; i < count; i++){
+      const angle = (i / count) * Math.PI * 2;
       const spd = rand(4.5, 6.2);
       fwParticles.push({
         x: cx, y: cy,
@@ -2168,8 +2201,13 @@ function animateFireworks(){
 
     fwCtx.save();
     fwCtx.fillStyle = '#ffcf56';
-    fwCtx.shadowColor = '#ffaa00';
-    fwCtx.shadowBlur = 8;
+    // Soft outer glow without shadowBlur
+    fwCtx.globalAlpha = 0.35;
+    fwCtx.beginPath();
+    fwCtx.arc(r.x, r.y, 5.5, 0, Math.PI * 2);
+    fwCtx.fill();
+    // Core rocket head
+    fwCtx.globalAlpha = 1;
     fwCtx.beginPath();
     fwCtx.arc(r.x, r.y, 2.5, 0, Math.PI * 2);
     fwCtx.fill();
@@ -2202,13 +2240,18 @@ function animateFireworks(){
 
       fwCtx.save();
       const sparkle = (Math.sin(p.life * p.flickerRate) * 0.4 + 0.6) * p.alpha;
-      fwCtx.globalAlpha = Math.max(0, sparkle);
-      fwCtx.fillStyle = p.color;
-      fwCtx.shadowColor = '#ffb703';
-      fwCtx.shadowBlur = 12;
-      fwCtx.beginPath();
       const jx = rand(-0.7, 0.7);
       const jy = rand(-0.7, 0.7);
+      // Soft glow
+      fwCtx.fillStyle = '#ffb703';
+      fwCtx.globalAlpha = Math.max(0, sparkle * 0.32);
+      fwCtx.beginPath();
+      fwCtx.arc(p.x + jx, p.y + jy, p.size * 2.2, 0, Math.PI * 2);
+      fwCtx.fill();
+      // Core sparkle
+      fwCtx.fillStyle = p.color;
+      fwCtx.globalAlpha = Math.max(0, sparkle);
+      fwCtx.beginPath();
       fwCtx.arc(p.x + jx, p.y + jy, p.size, 0, Math.PI * 2);
       fwCtx.fill();
       fwCtx.restore();
@@ -2228,10 +2271,15 @@ function animateFireworks(){
 
       fwCtx.save();
       const flicker = p.flicker ? (Math.random() * 0.4 + 0.6) : 1;
-      fwCtx.globalAlpha = Math.max(0, p.alpha * flicker);
+      const curA = Math.max(0, p.alpha * flicker);
       fwCtx.fillStyle = p.color;
-      fwCtx.shadowColor = p.color;
-      fwCtx.shadowBlur = 6;
+      // Soft glow
+      fwCtx.globalAlpha = curA * 0.28;
+      fwCtx.beginPath();
+      fwCtx.arc(p.x, p.y, p.size * 1.8, 0, Math.PI * 2);
+      fwCtx.fill();
+      // Core particle
+      fwCtx.globalAlpha = curA;
       fwCtx.beginPath();
       fwCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
       fwCtx.fill();
@@ -2586,7 +2634,8 @@ function setupLetter(){
    SIZING + BOOT
    ============================================================ */
 function resize(){
-  dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const isMobile = window.innerWidth <= 768;
+  dpr = isMobile ? Math.min(window.devicePixelRatio || 1, 1.5) : Math.min(window.devicePixelRatio || 1, 2);
   W = canvas.clientWidth; H = canvas.clientHeight;
   canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
