@@ -1025,16 +1025,63 @@ function setupParallaxTilt(){
   });
 }
 
+/* ============================================================
+   MOBILE GESTURE NAVIGATION & MODAL HISTORY MANAGEMENT
+   ============================================================ */
+let activeModalName = null;
+
+function pushModalHistory(name){
+  activeModalName = name;
+  try {
+    history.pushState({ modalOpen: name }, '');
+  } catch(e){}
+}
+
+function popModalHistory(name){
+  if (activeModalName === name){
+    activeModalName = null;
+    try {
+      if (history.state && history.state.modalOpen === name){
+        history.back();
+      }
+    } catch(e){}
+  }
+}
+
+// Global popstate handler for mobile edge-swipe gesture navigation & hardware back buttons
+window.addEventListener('popstate', () => {
+  const lModal = $('letterModal');
+  if (lModal && lModal.classList.contains('is-open')){
+    activeModalName = null;
+    closeLetterModal(false);
+    return;
+  }
+  const gModal = $('galleryModal');
+  if (gModal && gModal.classList.contains('is-open')){
+    activeModalName = null;
+    closeGallery(false);
+    return;
+  }
+  const lanModal = $('lanternModal');
+  if (lanModal && lanModal.classList.contains('is-open')){
+    activeModalName = null;
+    closeLanternModal(false);
+    return;
+  }
+});
+
 function openGallery(initialIdx = 0){
   if (!galleryModal) return;
+  pushModalHistory('gallery');
   galleryModal.hidden = false;
   galleryModal.setAttribute('aria-hidden', 'false');
   galleryModal.classList.add('is-open');
   renderPhoto(initialIdx);
 }
 
-function closeGallery(){
+function closeGallery(shouldPopHistory = true){
   if (!galleryModal) return;
+  if (shouldPopHistory) popModalHistory('gallery');
   galleryModal.classList.remove('is-open');
   galleryModal.setAttribute('aria-hidden', 'true');
   setTimeout(() => {
@@ -1059,8 +1106,8 @@ function setupGallery(){
   if (openMemBtn) {
     openMemBtn.addEventListener('click', triggerOpen);
   }
-  if (galleryClose) galleryClose.addEventListener('click', closeGallery);
-  if (galleryBackdrop) galleryBackdrop.addEventListener('click', closeGallery);
+  if (galleryClose) galleryClose.addEventListener('click', () => closeGallery(true));
+  if (galleryBackdrop) galleryBackdrop.addEventListener('click', () => closeGallery(true));
   if (galleryPrev) galleryPrev.addEventListener('click', (e) => { e.stopPropagation(); renderPhoto(curPhotoIdx - 1, -1); });
   if (galleryNext) galleryNext.addEventListener('click', (e) => { e.stopPropagation(); renderPhoto(curPhotoIdx + 1, 1); });
   if (polaroidLikeBtn) polaroidLikeBtn.addEventListener('click', popHeartReaction);
@@ -1507,6 +1554,7 @@ function fire(){
   if (played) return;
   played = true;
   drawing = false;
+  handleUserActivation();
   stopBeat();
   cue('release'); cue('whoosh');
   filmTL = buildFilm(shotGeom());
@@ -1520,6 +1568,7 @@ function springBack(){
 
 function autoFire(){
   if (played) return;
+  handleUserActivation();
   recT0 = performance.now(); cue('draw');       // t=0 of the soundtrack
   gsap.to({ d: curDraw }, {
     d: maxDraw * 0.94, duration: 0.62, ease: 'power2.inOut',
@@ -1530,6 +1579,7 @@ function autoFire(){
 
 archery.addEventListener('pointerdown', (e) => {
   if (played) return;
+  handleUserActivation();
   drawing = true;
   try { archery.setPointerCapture(e.pointerId); } catch (_) {}
   startPX = e.clientX; startPY = e.clientY; startDraw = curDraw;
@@ -1564,7 +1614,11 @@ archery.addEventListener('keydown', (e) => {
 if (target){
   target.style.pointerEvents = 'auto';
   target.style.cursor = 'pointer';
+  target.addEventListener('pointerdown', () => {
+    handleUserActivation();
+  });
   target.addEventListener('click', () => {
+    handleUserActivation();
     if (!played) autoFire();
   });
 }
@@ -1638,12 +1692,47 @@ window.addEventListener('keydown', () => { initAudioContext(); }, { once: true }
 
 let bdayAudio = null;
 let isMusicBoxPlaying = false;
+let audioListenersAttached = false;
+
+function handleUserActivation(){
+  if (!isMusicBoxPlaying){
+    startMusicBox();
+  }
+}
+
+function attachAutoPlayListeners(){
+  if (audioListenersAttached) return;
+  audioListenersAttached = true;
+  window.addEventListener('pointerdown', handleUserActivation, { passive: true });
+  window.addEventListener('touchstart', handleUserActivation, { passive: true });
+  window.addEventListener('touchend', handleUserActivation, { passive: true });
+  window.addEventListener('click', handleUserActivation, { passive: true });
+  window.addEventListener('keydown', handleUserActivation, { passive: true });
+}
+
+function detachAutoPlayListeners(){
+  if (!audioListenersAttached) return;
+  audioListenersAttached = false;
+  window.removeEventListener('pointerdown', handleUserActivation);
+  window.removeEventListener('touchstart', handleUserActivation);
+  window.removeEventListener('touchend', handleUserActivation);
+  window.removeEventListener('click', handleUserActivation);
+  window.removeEventListener('keydown', handleUserActivation);
+}
 
 function initAudioElement(){
   if (!bdayAudio){
-    bdayAudio = new Audio('/happy-birthday.mp3');
+    bdayAudio = new Audio('./happy-birthday.mp3');
     bdayAudio.loop = true;
     bdayAudio.preload = 'auto';
+
+    const setChorusTime = () => {
+      if (bdayAudio.duration > 65 && bdayAudio.currentTime < 30){
+        bdayAudio.currentTime = 30;
+      }
+    };
+    bdayAudio.addEventListener('loadedmetadata', setChorusTime);
+    bdayAudio.addEventListener('canplay', setChorusTime);
 
     // If loaded file is full duration (>65s), maintain 30s to 80s (1m20s) playback
     bdayAudio.addEventListener('timeupdate', () => {
@@ -1665,6 +1754,7 @@ function initAudioElement(){
       isMusicBoxPlaying = true;
       const btn = $('musicBoxBtn');
       if (btn) btn.classList.add('is-playing');
+      detachAutoPlayListeners();
     });
 
     bdayAudio.addEventListener('pause', () => {
@@ -1680,7 +1770,7 @@ function startMusicBox(){
   initAudioContext();
   if (!bdayAudio) return;
 
-  if (bdayAudio.duration > 65 && bdayAudio.currentTime < 30){
+  if (bdayAudio.readyState >= 1 && bdayAudio.duration > 65 && bdayAudio.currentTime < 30){
     bdayAudio.currentTime = 30;
   }
 
@@ -1690,8 +1780,10 @@ function startMusicBox(){
       isMusicBoxPlaying = true;
       const btn = $('musicBoxBtn');
       if (btn) btn.classList.add('is-playing');
+      detachAutoPlayListeners();
     }).catch(() => {
-      // Audio playback waiting for user gesture
+      // Audio playback waiting for user gesture; will start on first touch
+      attachAutoPlayListeners();
     });
   }
 }
@@ -1741,17 +1833,7 @@ function setupMusicBox(){
     });
   }
 
-  // Auto-play music as soon as user enters or touches/clicks anywhere
-  const autoPlayOnEnter = () => {
-    if (!isMusicBoxPlaying) {
-      startMusicBox();
-    }
-  };
-
-  window.addEventListener('pointerdown', autoPlayOnEnter, { once: true });
-  window.addEventListener('touchstart', autoPlayOnEnter, { once: true });
-  window.addEventListener('click', autoPlayOnEnter, { once: true });
-  window.addEventListener('keydown', autoPlayOnEnter, { once: true });
+  attachAutoPlayListeners();
 
   // Try immediate start on load
   try {
@@ -2327,6 +2409,7 @@ let selectedLanternWish = '🌻 Bright Smiles & Golden Sunshine';
 function openLanternModal(){
   const modal = $('lanternModal');
   if (!modal) return;
+  pushModalHistory('lantern');
   modal.hidden = false;
   modal.setAttribute('aria-hidden', 'false');
   modal.classList.add('is-open');
@@ -2335,9 +2418,10 @@ function openLanternModal(){
   updateLanternTagPreview(selectedLanternWish);
 }
 
-function closeLanternModal(){
+function closeLanternModal(shouldPopHistory = true){
   const modal = $('lanternModal');
   if (!modal) return;
+  if (shouldPopHistory) popModalHistory('lantern');
   modal.classList.remove('is-open');
   modal.setAttribute('aria-hidden', 'true');
   setTimeout(() => {
@@ -2488,10 +2572,10 @@ function setupLanterns(){
   if (openBtn) openBtn.addEventListener('click', openLanternModal);
 
   const closeBtn = $('lanternCloseBtn');
-  if (closeBtn) closeBtn.addEventListener('click', closeLanternModal);
+  if (closeBtn) closeBtn.addEventListener('click', () => closeLanternModal(true));
 
   const backdrop = $('lanternBackdrop');
-  if (backdrop) backdrop.addEventListener('click', closeLanternModal);
+  if (backdrop) backdrop.addEventListener('click', () => closeLanternModal(true));
 
   const presets = document.querySelectorAll('.lantern-presets .preset-btn');
   presets.forEach(btn => {
@@ -2520,7 +2604,7 @@ function setupLanterns(){
     submitBtn.addEventListener('click', () => {
       const customVal = customInput ? customInput.value.trim() : '';
       const wishToRelease = customVal || selectedLanternWish || 'Golden Sunshine & Smiles';
-      closeLanternModal();
+      closeLanternModal(true);
       spawnSkyLantern(wishToRelease);
     });
   }
@@ -2528,7 +2612,7 @@ function setupLanterns(){
   window.addEventListener('keydown', (e) => {
     const modal = $('lanternModal');
     if (modal && modal.classList.contains('is-open') && e.key === 'Escape'){
-      closeLanternModal();
+      closeLanternModal(true);
     }
   });
 }
@@ -2541,6 +2625,7 @@ let isLetterUnsealed = false;
 function openLetterModal(){
   const modal = $('letterModal');
   if (!modal) return;
+  pushModalHistory('letter');
   modal.hidden = false;
   modal.setAttribute('aria-hidden', 'false');
   modal.classList.add('is-open');
@@ -2558,9 +2643,10 @@ function openLetterModal(){
   }
 }
 
-function closeLetterModal(){
+function closeLetterModal(shouldPopHistory = true){
   const modal = $('letterModal');
   if (!modal) return;
+  if (shouldPopHistory) popModalHistory('letter');
   modal.classList.remove('is-open');
   modal.setAttribute('aria-hidden', 'true');
   setTimeout(() => {
@@ -2617,17 +2703,43 @@ function setupLetter(){
   if (envelope) envelope.addEventListener('click', unsealLetter);
 
   const closeBtn = $('letterCloseBtn');
-  if (closeBtn) closeBtn.addEventListener('click', closeLetterModal);
+  if (closeBtn) closeBtn.addEventListener('click', () => closeLetterModal(true));
+
+  const backBtn = $('parchmentBackBtn');
+  if (backBtn) backBtn.addEventListener('click', () => closeLetterModal(true));
 
   const backdrop = $('letterBackdrop');
-  if (backdrop) backdrop.addEventListener('click', closeLetterModal);
+  if (backdrop) backdrop.addEventListener('click', () => closeLetterModal(true));
 
   window.addEventListener('keydown', (e) => {
     const modal = $('letterModal');
     if (modal && modal.classList.contains('is-open') && e.key === 'Escape'){
-      closeLetterModal();
+      closeLetterModal(true);
     }
   });
+
+  // Mobile edge-swipe gesture navigation detector (swiping right to go back)
+  const modal = $('letterModal');
+  if (modal){
+    let touchStartX = 0;
+    let touchStartY = 0;
+    modal.addEventListener('touchstart', (e) => {
+      if (e.touches && e.touches[0]){
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+      }
+    }, { passive: true });
+    modal.addEventListener('touchend', (e) => {
+      if (e.changedTouches && e.changedTouches[0]){
+        const dx = e.changedTouches[0].clientX - touchStartX;
+        const dy = e.changedTouches[0].clientY - touchStartY;
+        // If swiped left-to-right by > 65px (gesture nav back)
+        if (dx > 65 && Math.abs(dx) > Math.abs(dy) * 1.4){
+          closeLetterModal(true);
+        }
+      }
+    }, { passive: true });
+  }
 }
 
 /* ============================================================
