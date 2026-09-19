@@ -100,6 +100,8 @@ const PHOTOS = [
     caption: 'Dancing with the ocean breeze \uD83C\uDF0A\uD83C\uDF38',
     subnote: 'Memories by the Shore \u2022 Pure Bliss',
     stamp: '\uD83C\uDF3B Seaside Sunshine',
+    backDate: 'Seaside Memories \u2022 Deva Sri',
+    backNote: '"May the peace of the ocean and the freedom of the breeze always fill your beautiful spirit with calm, happiness, and golden laughter."',
     position: 'center 15%'
   },
   {
@@ -107,6 +109,8 @@ const PHOTOS = [
     caption: 'Timeless grace & joyful heart \uD83C\uDFDB\uFE0F\uD83D\uDC96',
     subnote: 'Grace in every smile \u2022 Forever Loved',
     stamp: '\u2728 Soulful & Serene',
+    backDate: 'A Beautiful Day \u2022 Deva Sri',
+    backNote: '"Your quiet strength, gentle kindness, and soulful smile inspire everyone around you to smile more often and appreciate the little things."',
     position: 'center 15%'
   },
   {
@@ -114,6 +118,8 @@ const PHOTOS = [
     caption: 'Radiant elegance & golden moments \uD83C\uDF3B\u2728',
     subnote: 'Traditional Beauty \u2022 Simply Magical',
     stamp: '\uD83D\uDC51 Golden Hour',
+    backDate: 'Celebrations & Joy \u2022 Deva Sri',
+    backNote: '"You carry yourself with a rare and captivating grace that turns ordinary moments into unforgettable lifelong memories."',
     position: 'center 15%'
   },
   {
@@ -121,6 +127,8 @@ const PHOTOS = [
     caption: 'Blooming bright amidst golden sunflowers \uD83C\uDF3B\u2728',
     subnote: 'Sunflower Meadow \u2022 Pure Sunshine Deva Sri',
     stamp: '\uD83C\uDF3B Sunflower Queen Deva Sri',
+    backDate: 'Endless Sunflowers \u2022 Deva Sri',
+    backNote: '"Like a sunflower that always turns toward the light, may your heart always find warmth, joy, and endless reasons to bloom brightly."',
     position: 'center 30%'
   }
 ];
@@ -773,12 +781,87 @@ function drawRested(){
 
 function showWish(on){ wishEl.classList.toggle('is-in', on); }
 
+let micStream = null;
+let micAudioCtx = null;
+let micBlowActive = false;
+
+function initMicBlowDetector(){
+  if (cakeBlown || micBlowActive) return;
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
+
+  micBlowActive = true;
+  navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+    .then(stream => {
+      if (cakeBlown){
+        stream.getTracks().forEach(t => t.stop());
+        return;
+      }
+      micStream = stream;
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      micAudioCtx = new AudioCtx();
+      const source = micAudioCtx.createMediaStreamSource(stream);
+      const analyser = micAudioCtx.createAnalyser();
+      analyser.fftSize = 256;
+      source.connect(analyser);
+
+      const dataArray = new Uint8Array(analyser.frequencyBinCount);
+      let blowTicks = 0;
+
+      function checkMic(){
+        if (cakeBlown || !micBlowActive){
+          stopMicBlowDetector();
+          return;
+        }
+        analyser.getByteFrequencyData(dataArray);
+        let lowEnergy = 0;
+        for (let i = 1; i <= 8; i++){
+          lowEnergy += dataArray[i];
+        }
+        const avg = lowEnergy / 8;
+        if (avg > 72){
+          blowTicks++;
+          if (blowTicks >= 3){
+            blowCandles();
+            stopMicBlowDetector();
+            return;
+          }
+        } else {
+          blowTicks = Math.max(0, blowTicks - 1);
+        }
+        requestAnimationFrame(checkMic);
+      }
+      requestAnimationFrame(checkMic);
+    })
+    .catch(() => {
+      micBlowActive = false;
+    });
+}
+
+function stopMicBlowDetector(){
+  micBlowActive = false;
+  if (micStream){
+    micStream.getTracks().forEach(t => t.stop());
+    micStream = null;
+  }
+  if (micAudioCtx){
+    try { micAudioCtx.close(); } catch(e){}
+    micAudioCtx = null;
+  }
+}
+
 function showCake(on){
-  if (cakeWrapper) cakeWrapper.classList.toggle('is-in', on);
+  if (cakeWrapper){
+    cakeWrapper.classList.toggle('is-in', on);
+    if (on && !cakeBlown){
+      initMicBlowDetector();
+    }
+  }
 }
 
 function resetCake(){
   cakeBlown = false;
+  stopMicBlowDetector();
   if (cakeCard){
     cakeCard.classList.remove('is-blown');
     cakeCard.setAttribute('aria-label', 'Interactive Birthday Cake. Click to blow out the candles and make a wish!');
@@ -790,69 +873,65 @@ function spawnConfetti(){
   if (!cakeConfetti || !cakeCard) return;
   cakeConfetti.innerHTML = '';
   const rect = cakeCard.getBoundingClientRect();
-  const originX = rect.left + rect.width / 2;
-  const originY = rect.top + rect.height * 0.35;
+  const ox = rect.left + rect.width / 2;
+  const oy = rect.top + rect.height * 0.45;
 
-  const colors = ['#ffb703', '#fb8500', '#e63946', '#ff006e', '#ffd166', '#ffffff', '#2a9d8f'];
-  const count = 45;
-
-  for (let i = 0; i < count; i++){
-    const p = document.createElement('span');
+  const colors = ['#fca311', '#e85d04', '#d90429', '#ffbe0b', '#fff', '#70e000', '#38b000'];
+  const confettiCount = window.innerWidth <= 768 ? 32 : 55;
+  for (let i = 0; i < confettiCount; i++){
+    const p = document.createElement('div');
     p.className = 'confetti-p';
-    const size = rand(5, 10);
-    p.style.width = `${size}px`;
-    p.style.height = `${size * rand(0.6, 1.4)}px`;
-    p.style.background = pick(colors);
-    p.style.left = `${originX}px`;
-    p.style.top = `${originY}px`;
+    p.style.backgroundColor = pick(colors);
+    p.style.width = `${rand(6, 12)}px`;
+    p.style.height = `${rand(4, 8)}px`;
+    p.style.left = `${ox}px`;
+    p.style.top = `${oy}px`;
     cakeConfetti.appendChild(p);
 
-    const angle = rand(-Math.PI * 0.95, -Math.PI * 0.05);
+    const angle = rand(-Math.PI * 0.9, -Math.PI * 0.1);
     const dist = rand(70, 240);
-    const targetX = Math.cos(angle) * dist + rand(-30, 30);
-    const targetY = Math.sin(angle) * dist + rand(20, 50);
-    const duration = rand(1.2, 2.0);
+    const tx = Math.cos(angle) * dist + rand(-30, 30);
+    const ty = Math.sin(angle) * dist * 1.1;
 
     gsap.to(p, {
-      x: targetX,
-      y: targetY,
-      rotation: rand(-720, 720),
-      duration,
+      x: tx,
+      y: ty,
+      rotation: rand(-360, 360),
+      duration: rand(0.9, 1.4),
       ease: 'power2.out',
-      onComplete: () => p.remove()
-    });
-    gsap.to(p, {
-      y: `+=${rand(80, 150)}`,
-      opacity: 0,
-      duration: duration * 0.6,
-      delay: duration * 0.4,
-      ease: 'power1.in'
+      onComplete: () => {
+        gsap.to(p, {
+          y: '+=200',
+          opacity: 0,
+          duration: rand(1.2, 1.8),
+          ease: 'power1.in',
+          onComplete: () => p.remove()
+        });
+      }
     });
   }
 
-  // Floating celebration sunflowers and cakes burst!
-  const celebrationIcons = ['🌻', '🎂', '🍰', '🧁', '✨', '🌻', '🎂', '💖', '🎉'];
-  const iconCount = 26;
+  // Celebratory icons
+  const icons = ['🌻', '🎂', '✨', '💖', '🎉', '🌻', '✨'];
+  const iconCount = window.innerWidth <= 768 ? 7 : 12;
   for (let i = 0; i < iconCount; i++){
     const span = document.createElement('span');
     span.className = 'cake-burst-icon';
-    span.textContent = pick(celebrationIcons);
-    span.style.left = `${originX}px`;
-    span.style.top = `${originY}px`;
+    span.textContent = icons[i % icons.length];
+    span.style.left = `${ox}px`;
+    span.style.top = `${oy}px`;
     cakeConfetti.appendChild(span);
 
-    const angle = rand(-Math.PI * 0.98, -Math.PI * 0.02);
-    const dist = rand(80, 320);
-    const targetX = Math.cos(angle) * dist + rand(-35, 35);
-    const targetY = Math.sin(angle) * dist - rand(30, 90);
-    const duration = rand(1.5, 2.6);
+    const ang = rand(-Math.PI * 0.85, -Math.PI * 0.15);
+    const dist = rand(80, 200);
+    const duration = rand(1.4, 2.0);
 
     gsap.to(span, {
-      x: targetX,
-      y: targetY,
-      rotation: rand(-45, 45),
-      scale: rand(1.1, 1.8),
-      duration,
+      x: Math.cos(ang) * dist + rand(-20, 20),
+      y: Math.sin(ang) * dist - rand(10, 40),
+      scale: rand(1.1, 1.6),
+      rotation: rand(-40, 40),
+      duration: duration * 0.45,
       ease: 'power2.out',
       onComplete: () => span.remove()
     });
@@ -872,11 +951,13 @@ function blowCandles(){
     return;
   }
   cakeBlown = true;
+  stopMicBlowDetector();
   cue('candles');
   cakeCard.classList.add('is-blown');
   cakeCard.setAttribute('aria-label', 'Candles blown out! Click to view memories.');
   spawnConfetti();
   launchMidnightFireworks();
+  if (navigator.vibrate) navigator.vibrate([60, 40, 100]);
 }
 
 function setupCake(){
@@ -891,8 +972,12 @@ function setupCake(){
 
   const tMem = $('toastMemoriesBtn');
   if (tMem) tMem.addEventListener('click', (e) => { e.stopPropagation(); openGallery(0); });
+  const tGift = $('toastGiftBtn');
+  if (tGift) tGift.addEventListener('click', (e) => { e.stopPropagation(); openGiftModal(); });
   const tLan = $('toastLanternBtn');
   if (tLan) tLan.addEventListener('click', (e) => { e.stopPropagation(); openLanternModal(); });
+  const tStars = $('toastStarsBtn');
+  if (tStars) tStars.addEventListener('click', (e) => { e.stopPropagation(); openConstellationModal(); });
   const tLet = $('toastLetterBtn');
   if (tLet) tLet.addEventListener('click', (e) => { e.stopPropagation(); openLetterModal(); });
 }
@@ -906,6 +991,12 @@ function renderPhoto(idx, direction = 0){
   const p = PHOTOS[curPhotoIdx];
 
   const tilt = (curPhotoIdx % 2 === 0 ? 1 : -1) * rand(1.2, 2.5);
+
+  if (polaroidCard) polaroidCard.classList.remove('is-flipped');
+  const backDate = $('polaroidBackDate');
+  if (backDate) backDate.textContent = p.backDate || 'Deva Sri \u2022 Precious Memory';
+  const backText = $('polaroidBackText');
+  if (backText) backText.textContent = p.backNote || 'A special moment with Deva Sri...';
 
   if (direction !== 0){
     gsap.to(polaroidCard, {
@@ -963,10 +1054,10 @@ function popHeartReaction(e){
     const ox = rect.left - wrapRect.left + rect.width / 2;
     const oy = rect.top - wrapRect.top;
 
-    const icons = ['💖', '✨', '🌻', '🎂', '🌸', '🍰', '💕', '⭐', '🥰'];
+    const icons = ['💖', '✨', '🌻', '🎉', '💛', '🌸', '🥰', '⭐', '🎈'];
     for (let i = 0; i < 7; i++){
       const span = document.createElement('span');
-      span.className = 'burst-heart-p';
+      span.className = 'polaroid-burst-p';
       span.textContent = pick(icons);
       span.style.left = `${ox}px`;
       span.style.top = `${oy}px`;
@@ -976,11 +1067,11 @@ function popHeartReaction(e){
       const dist = rand(50, 150);
       gsap.to(span, {
         x: Math.cos(ang) * dist + rand(-25, 25),
-        y: Math.sin(ang) * dist - rand(15, 45),
-        rotation: rand(-35, 35),
-        scale: rand(0.9, 1.4),
+        y: Math.sin(ang) * dist,
+        scale: rand(1, 1.6),
+        rotation: rand(-45, 45),
         opacity: 0,
-        duration: rand(1.1, 1.7),
+        duration: rand(0.9, 1.4),
         ease: 'power2.out',
         onComplete: () => span.remove()
       });
@@ -1011,7 +1102,7 @@ function setupParallaxTilt(){
     if (polaroidGlare){
       const px = Math.round((x / rect.width) * 100);
       const py = Math.round((y / rect.height) * 100);
-      polaroidGlare.style.background = `radial-gradient(circle at ${px}% ${py}%, rgba(255,255,255,0.3) 0%, transparent 60%)`;
+      polaroidGlare.style.background = `radial-gradient(circle at ${px}% ${py}%, rgba(255,255,255,0.35) 0%, transparent 60%)`;
     }
   });
 
@@ -1023,6 +1114,28 @@ function setupParallaxTilt(){
       ease: 'power2.out'
     });
   });
+
+  // Mobile Gyroscope 3D Tilt Sensor
+  if (window.DeviceOrientationEvent){
+    window.addEventListener('deviceorientation', (e) => {
+      if (!galleryModal || !galleryModal.classList.contains('is-open')) return;
+      if (e.gamma === null || e.beta === null) return;
+      const rotY = clamp(e.gamma, -25, 25) * 0.35;
+      const rotX = -clamp(e.beta - 45, -25, 25) * 0.35;
+      gsap.to(polaroidCard, {
+        rotateX: rotX,
+        rotateY: rotY,
+        duration: 0.3,
+        ease: 'power1.out',
+        overwrite: 'auto'
+      });
+      if (polaroidGlare){
+        const px = Math.round(50 + (e.gamma / 25) * 40);
+        const py = Math.round(50 + ((e.beta - 45) / 25) * 40);
+        polaroidGlare.style.background = `radial-gradient(circle at ${px}% ${py}%, rgba(255,255,255,0.4) 0%, transparent 65%)`;
+      }
+    });
+  }
 }
 
 /* ============================================================
@@ -1066,6 +1179,18 @@ window.addEventListener('popstate', () => {
   if (lanModal && lanModal.classList.contains('is-open')){
     activeModalName = null;
     closeLanternModal(false);
+    return;
+  }
+  const giftModal = $('giftModal');
+  if (giftModal && giftModal.classList.contains('is-open')){
+    activeModalName = null;
+    closeGiftModal(false);
+    return;
+  }
+  const constModal = $('constellationModal');
+  if (constModal && constModal.classList.contains('is-open')){
+    activeModalName = null;
+    closeConstellationModal(false);
     return;
   }
 });
@@ -1130,17 +1255,26 @@ function setupGallery(){
   });
 
   let touchStartX = 0;
+  let hasSwiped = false;
   polaroidCard && polaroidCard.addEventListener('touchstart', (e) => {
     touchStartX = e.changedTouches[0].clientX;
+    hasSwiped = false;
   }, { passive: true });
   polaroidCard && polaroidCard.addEventListener('touchend', (e) => {
     const touchEndX = e.changedTouches[0].clientX;
     const diff = touchEndX - touchStartX;
     if (Math.abs(diff) > 40){
+      hasSwiped = true;
       if (diff > 0) renderPhoto(curPhotoIdx - 1, -1);
       else renderPhoto(curPhotoIdx + 1, 1);
     }
   }, { passive: true });
+
+  polaroidCard && polaroidCard.addEventListener('click', (e) => {
+    if (e.target.closest('#polaroidLikeBtn') || hasSwiped) return;
+    polaroidCard.classList.toggle('is-flipped');
+    if (navigator.vibrate) navigator.vibrate(25);
+  });
 
   setupParallaxTilt();
   window.openMemories = () => openGallery(0);
@@ -1863,26 +1997,43 @@ function initCursorCanvas(){
   window.addEventListener('resize', resizeCursor);
   resizeCursor();
 
-  function spawnCursorParticles(x, y, count = 2){
+  function spawnCursorParticles(x, y, count = 2, isFirefly = false){
     const colors = ['#ffe17d', '#ffb703', '#fb8500', '#ffffff', '#ffd166'];
     for (let i = 0; i < count; i++){
-      const angle = rand(0, Math.PI * 2);
-      const spd = rand(0.5, 3.2);
-      const isStar = Math.random() < 0.35;
-      const isPetal = Math.random() < 0.15;
-      cursorParticles.push({
-        x: x + rand(-4, 4),
-        y: y + rand(-4, 4),
-        vx: Math.cos(angle) * spd,
-        vy: Math.sin(angle) * spd + rand(0.3, 1.2),
-        size: isPetal ? rand(4, 7) : (isStar ? rand(3, 5.5) : rand(1.5, 3.2)),
-        color: colors[Math.floor(Math.random() * colors.length)],
-        alpha: 1,
-        decay: rand(0.022, 0.045),
-        type: isPetal ? 'petal' : (isStar ? 'star' : 'spark'),
-        rot: rand(0, Math.PI * 2),
-        vrot: rand(-0.08, 0.08)
-      });
+      if (isFirefly){
+        cursorParticles.push({
+          x: x + rand(-8, 8),
+          y: y + rand(-8, 8),
+          vx: rand(-0.7, 0.7),
+          vy: rand(-1.2, -0.4),
+          phase: rand(0, Math.PI * 2),
+          size: rand(3.5, 6),
+          color: '#a7f3d0',
+          alpha: 1,
+          decay: rand(0.012, 0.024),
+          type: 'firefly',
+          rot: 0,
+          vrot: 0
+        });
+      } else {
+        const angle = rand(0, Math.PI * 2);
+        const spd = rand(0.5, 3.2);
+        const isStar = Math.random() < 0.35;
+        const isPetal = Math.random() < 0.15;
+        cursorParticles.push({
+          x: x + rand(-4, 4),
+          y: y + rand(-4, 4),
+          vx: Math.cos(angle) * spd,
+          vy: Math.sin(angle) * spd + rand(0.3, 1.2),
+          size: isPetal ? rand(4, 7) : (isStar ? rand(3, 5.5) : rand(1.5, 3.2)),
+          color: colors[Math.floor(Math.random() * colors.length)],
+          alpha: 1,
+          decay: rand(0.022, 0.045),
+          type: isPetal ? 'petal' : (isStar ? 'star' : 'spark'),
+          rot: rand(0, Math.PI * 2),
+          vrot: rand(-0.08, 0.08)
+        });
+      }
     }
     if (!cursorRAF){
       cursorRAF = requestAnimationFrame(animateCursor);
@@ -1890,33 +2041,37 @@ function initCursorCanvas(){
   }
 
   function onPointerMove(e){
-    if (e.pointerType === 'touch') return; // Don't track drag on touchscreens to ensure smooth UI
+    const isTouch = e.pointerType === 'touch';
+    if (isTouch && !window.bdayDone) return; // In Act 1, don't spam particles while aiming bow
     const x = e.clientX !== undefined ? e.clientX : -1;
     const y = e.clientY !== undefined ? e.clientY : -1;
     if (x < 0 || y < 0) return;
+
+    const fireflyMode = isTouch && window.bdayDone;
 
     if (lastPointerPos.x >= 0){
       const dx = x - lastPointerPos.x;
       const dy = y - lastPointerPos.y;
       const dist = Math.hypot(dx, dy);
-      if (dist > 6){
-        const steps = Math.min(5, Math.floor(dist / 14));
+      if (dist > 8){
+        const steps = Math.min(4, Math.floor(dist / 16));
         for (let s = 1; s <= steps; s++){
           const t = s / steps;
-          spawnCursorParticles(lastPointerPos.x + dx * t, lastPointerPos.y + dy * t, 1);
+          spawnCursorParticles(lastPointerPos.x + dx * t, lastPointerPos.y + dy * t, fireflyMode ? 1 : 1, fireflyMode);
         }
       }
     }
     lastPointerPos = { x, y };
-    spawnCursorParticles(x, y, 1);
+    spawnCursorParticles(x, y, fireflyMode ? 2 : 1, fireflyMode);
   }
 
   function onPointerDown(e){
+    const isTouch = e.pointerType === 'touch';
     const x = e.clientX !== undefined ? e.clientX : (e.touches && e.touches[0] ? e.touches[0].clientX : -1);
     const y = e.clientY !== undefined ? e.clientY : (e.touches && e.touches[0] ? e.touches[0].clientY : -1);
     if (x < 0 || y < 0) return;
-    const count = e.pointerType === 'touch' ? 7 : 18;
-    spawnCursorParticles(x, y, count);
+    const count = isTouch ? (window.bdayDone ? 6 : 4) : 18;
+    spawnCursorParticles(x, y, count, isTouch && window.bdayDone);
   }
 
   window.addEventListener('pointermove', onPointerMove, { passive: true });
@@ -1929,6 +2084,37 @@ function animateCursor(){
 
   for (let i = cursorParticles.length - 1; i >= 0; i--){
     const p = cursorParticles[i];
+
+    if (p.type === 'firefly'){
+      p.phase += 0.08;
+      p.x += Math.sin(p.phase) * 1.2;
+      p.y += p.vy;
+      p.alpha -= p.decay;
+      if (p.alpha <= 0){
+        cursorParticles.splice(i, 1);
+        continue;
+      }
+      cursorCtx.save();
+      cursorCtx.globalAlpha = Math.max(0, p.alpha);
+      const rad = p.size * 3.5;
+      const glowGrad = cursorCtx.createRadialGradient(p.x, p.y, 1, p.x, p.y, rad);
+      glowGrad.addColorStop(0, '#ffffff');
+      glowGrad.addColorStop(0.35, '#a7f3d0');
+      glowGrad.addColorStop(0.7, 'rgba(52, 211, 153, 0.45)');
+      glowGrad.addColorStop(1, 'rgba(52, 211, 153, 0)');
+      cursorCtx.fillStyle = glowGrad;
+      cursorCtx.beginPath();
+      cursorCtx.arc(p.x, p.y, rad, 0, Math.PI * 2);
+      cursorCtx.fill();
+
+      cursorCtx.fillStyle = '#6ee7b7';
+      cursorCtx.beginPath();
+      cursorCtx.arc(p.x, p.y, p.size * 0.75, 0, Math.PI * 2);
+      cursorCtx.fill();
+      cursorCtx.restore();
+      continue;
+    }
+
     p.x += p.vx;
     p.y += p.vy;
     p.vy += 0.05;
@@ -2757,6 +2943,439 @@ function setupLetter(){
 }
 
 /* ============================================================
+   FEATURE 6: 3D GOLDEN RIBBON GIFT BOX UNBOXING
+   ============================================================ */
+let giftBoxOpened = false;
+
+function openGiftModal(){
+  const modal = $('giftModal');
+  if (!modal) return;
+  pushModalHistory('gift');
+  modal.classList.add('is-open');
+  modal.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('modal-open');
+}
+
+function closeGiftModal(shouldPopHistory = true){
+  const modal = $('giftModal');
+  if (!modal || !modal.classList.contains('is-open')) return;
+  if (shouldPopHistory) popModalHistory('gift');
+  modal.classList.remove('is-open');
+  modal.setAttribute('aria-hidden', 'true');
+  document.body.classList.remove('modal-open');
+}
+
+function playGiftChimes(){
+  initAudioContext();
+  if (!audioCtx) return;
+  const notes = [523.25, 659.25, 783.99, 1046.5, 1318.5]; // C5, E5, G5, C6, E6
+  notes.forEach((freq, idx) => {
+    setTimeout(() => {
+      if (!audioCtx) return;
+      const now = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, now);
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.linearRampToValueAtTime(0.18, now + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.5);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(now);
+      osc.stop(now + 0.55);
+    }, idx * 80);
+  });
+}
+
+function spawnGiftBurst(){
+  const burstContainer = $('giftBurst');
+  if (!burstContainer) return;
+  burstContainer.innerHTML = '';
+  const symbols = ['🦋', '🌻', '✨', '💛', '🌟', '💖', '👑'];
+  const count = 32;
+  for (let i = 0; i < count; i++){
+    const particle = document.createElement('div');
+    particle.className = 'gift-burst-item';
+    particle.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+    
+    const angle = Math.random() * Math.PI * 2;
+    const dist = 90 + Math.random() * 160;
+    const tx = Math.cos(angle) * dist;
+    const ty = Math.sin(angle) * dist - 40;
+    const rot = (Math.random() - 0.5) * 360;
+    const scale = 0.7 + Math.random() * 0.8;
+    const dur = 1.2 + Math.random() * 0.8;
+
+    particle.style.cssText = `
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      font-size: ${18 + Math.random() * 14}px;
+      transform: translate(-50%, -50%) scale(0);
+      pointer-events: none;
+      transition: transform ${dur}s cubic-bezier(0.1, 0.9, 0.2, 1), opacity ${dur}s ease-out;
+      opacity: 1;
+      will-change: transform, opacity;
+      filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.7));
+    `;
+    burstContainer.appendChild(particle);
+
+    requestAnimationFrame(() => {
+      particle.style.transform = `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px)) scale(${scale}) rotate(${rot}deg)`;
+      particle.style.opacity = '0';
+    });
+  }
+
+  if (typeof fireworkAt === 'function'){
+    const rect = burstContainer.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    fireworkAt(cx - 60, cy - 80);
+    setTimeout(() => fireworkAt(cx + 60, cy - 100), 200);
+  }
+}
+
+function setupGiftBox(){
+  const giftBox = $('giftBox');
+  const closeBtn = $('giftCloseBtn');
+  const backdrop = $('giftBackdrop');
+  const modal = $('giftModal');
+  if (!modal) return;
+
+  if (closeBtn){
+    closeBtn.addEventListener('click', () => closeGiftModal(true));
+  }
+  if (backdrop){
+    backdrop.addEventListener('click', () => closeGiftModal(true));
+  }
+
+  window.addEventListener('keydown', (e) => {
+    if (modal.classList.contains('is-open') && e.key === 'Escape'){
+      closeGiftModal(true);
+    }
+  });
+
+  // Mobile swipe back gesture on gift modal
+  let touchStartX = 0;
+  let touchStartY = 0;
+  modal.addEventListener('touchstart', (e) => {
+    if (e.touches && e.touches[0]){
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+    }
+  }, { passive: true });
+  modal.addEventListener('touchend', (e) => {
+    if (e.changedTouches && e.changedTouches[0]){
+      const dx = e.changedTouches[0].clientX - touchStartX;
+      const dy = e.changedTouches[0].clientY - touchStartY;
+      if (dx > 65 && Math.abs(dx) > Math.abs(dy) * 1.4){
+        closeGiftModal(true);
+      }
+    }
+  }, { passive: true });
+
+  if (giftBox){
+    function unbox(){
+      if (giftBoxOpened) return;
+      giftBoxOpened = true;
+      giftBox.classList.add('is-opened');
+
+      if (navigator.vibrate){
+        navigator.vibrate([40, 60, 80]);
+      }
+
+      playGiftChimes();
+      spawnGiftBurst();
+    }
+
+    giftBox.addEventListener('click', unbox);
+
+    let boxTouchY = 0;
+    giftBox.addEventListener('touchstart', (e) => {
+      if (e.touches && e.touches[0]){
+        boxTouchY = e.touches[0].clientY;
+      }
+    }, { passive: true });
+
+    giftBox.addEventListener('touchend', (e) => {
+      if (e.changedTouches && e.changedTouches[0]){
+        const diffY = boxTouchY - e.changedTouches[0].clientY;
+        if (diffY > 30 || Math.abs(boxTouchY - e.changedTouches[0].clientY) < 15){
+          unbox();
+        }
+      }
+    }, { passive: true });
+  }
+}
+
+/* ============================================================
+   FEATURE 7: COSMIC STAR CONSTELLATION CONNECT ("DEVA SRI")
+   ============================================================ */
+let constellationConnected = false;
+let constellationStars = [];
+let constellationConnections = [];
+let constellationCurrentStar = 0;
+let constellationAnimId = 0;
+
+function openConstellationModal(){
+  const modal = $('constellationModal');
+  if (!modal) return;
+  pushModalHistory('constellation');
+  modal.classList.add('is-open');
+  modal.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('modal-open');
+  initConstellationCanvas();
+}
+
+function closeConstellationModal(shouldPopHistory = true){
+  const modal = $('constellationModal');
+  if (!modal || !modal.classList.contains('is-open')) return;
+  if (shouldPopHistory) popModalHistory('constellation');
+  modal.classList.remove('is-open');
+  modal.setAttribute('aria-hidden', 'true');
+  document.body.classList.remove('modal-open');
+
+  if (constellationAnimId){
+    cancelAnimationFrame(constellationAnimId);
+    constellationAnimId = 0;
+  }
+}
+
+function playStarChime(pitchIdx){
+  initAudioContext();
+  if (!audioCtx) return;
+  const freqs = [369.99, 415.30, 466.16, 554.37, 622.25, 739.99, 830.61];
+  const freq = freqs[pitchIdx % freqs.length];
+  const now = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(freq, now);
+  gain.gain.setValueAtTime(0, now);
+  gain.gain.linearRampToValueAtTime(0.2, now + 0.03);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.7);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start(now);
+  osc.stop(now + 0.75);
+}
+
+function initConstellationCanvas(){
+  const canvas = $('constellationCanvas');
+  if (!canvas) return;
+  const rect = canvas.getBoundingClientRect();
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const w = rect.width || 340;
+  const h = rect.height || 340;
+  canvas.width = Math.round(w * dpr);
+  canvas.height = Math.round(h * dpr);
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  // 7 celestial stars representing "D-E-V-A-S-R-I"
+  const starCoords = [
+    { x: 0.20, y: 0.72, label: 'D' },
+    { x: 0.32, y: 0.52, label: 'E' },
+    { x: 0.50, y: 0.44, label: 'V' },
+    { x: 0.68, y: 0.50, label: 'A' },
+    { x: 0.82, y: 0.32, label: 'S' },
+    { x: 0.64, y: 0.20, label: 'R' },
+    { x: 0.40, y: 0.22, label: 'I' },
+  ];
+
+  constellationStars = starCoords.map((pt, i) => ({
+    id: i,
+    x: pt.x * w,
+    y: pt.y * h,
+    label: pt.label,
+    visited: i === 0,
+    pulse: 0
+  }));
+
+  constellationConnections = [];
+  constellationCurrentStar = 0;
+  constellationConnected = false;
+
+  const winFooter = $('constellationFooter');
+  if (winFooter) winFooter.hidden = true;
+
+  const bgStars = [];
+  for (let i = 0; i < 45; i++){
+    bgStars.push({
+      x: Math.random() * w,
+      y: Math.random() * h,
+      r: 0.6 + Math.random() * 1.4,
+      alpha: 0.2 + Math.random() * 0.7,
+      speed: 0.01 + Math.random() * 0.02
+    });
+  }
+
+  function loop(){
+    ctx.clearRect(0, 0, w, h);
+
+    // Draw twinkling cosmic dust
+    bgStars.forEach(s => {
+      s.alpha += Math.sin(Date.now() * s.speed) * 0.015;
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255, 255, 255, ${Math.max(0.1, Math.min(1, s.alpha))})`;
+      ctx.fill();
+    });
+
+    // Draw connected celestial laser lines
+    ctx.lineWidth = 2.5;
+    constellationConnections.forEach(conn => {
+      const p1 = constellationStars[conn.from];
+      const p2 = constellationStars[conn.to];
+      const grad = ctx.createLinearGradient(p1.x, p1.y, p2.x, p2.y);
+      grad.addColorStop(0, 'rgba(255, 215, 0, 0.95)');
+      grad.addColorStop(1, 'rgba(255, 150, 0, 0.95)');
+      ctx.strokeStyle = grad;
+      ctx.shadowColor = '#ffd700';
+      ctx.shadowBlur = 10;
+      ctx.beginPath();
+      ctx.moveTo(p1.x, p1.y);
+      ctx.lineTo(p2.x, p2.y);
+      ctx.stroke();
+    });
+    ctx.shadowBlur = 0;
+
+    // Draw stars and glowing halos
+    constellationStars.forEach((star, idx) => {
+      const isCurrent = idx === constellationCurrentStar;
+      const isTarget = idx === constellationCurrentStar + 1;
+      star.pulse += 0.06;
+
+      if (star.visited || isTarget){
+        const haloR = (star.visited ? 16 : 22) + Math.sin(star.pulse) * 4;
+        const grad = ctx.createRadialGradient(star.x, star.y, 2, star.x, star.y, haloR);
+        grad.addColorStop(0, isTarget ? 'rgba(255, 215, 0, 0.65)' : 'rgba(255, 180, 50, 0.35)');
+        grad.addColorStop(1, 'rgba(255, 215, 0, 0)');
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(star.x, star.y, haloR, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      ctx.beginPath();
+      const coreR = star.visited ? 6 : (isTarget ? 7 : 4);
+      ctx.arc(star.x, star.y, coreR, 0, Math.PI * 2);
+      ctx.fillStyle = star.visited ? '#ffffff' : (isTarget ? '#ffd700' : 'rgba(255, 255, 255, 0.5)');
+      ctx.shadowColor = '#ffe082';
+      ctx.shadowBlur = star.visited ? 12 : (isTarget ? 15 : 4);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+
+      ctx.font = '600 12px "Cinzel", serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'bottom';
+      ctx.fillStyle = star.visited ? '#ffe082' : (isTarget ? '#ffffff' : 'rgba(255, 255, 255, 0.45)');
+      ctx.fillText(star.label, star.x, star.y - 10);
+    });
+
+    constellationAnimId = requestAnimationFrame(loop);
+  }
+
+  if (constellationAnimId) cancelAnimationFrame(constellationAnimId);
+  constellationAnimId = requestAnimationFrame(loop);
+
+  let isPointerDown = false;
+  function handlePointer(clientX, clientY){
+    if (constellationConnected) return;
+    const rect = canvas.getBoundingClientRect();
+    const x = clientX - rect.left;
+    const y = clientY - rect.top;
+
+    const nextIdx = constellationCurrentStar + 1;
+    if (nextIdx < constellationStars.length){
+      const targetStar = constellationStars[nextIdx];
+      const dist = Math.hypot(x - targetStar.x, y - targetStar.y);
+      if (dist < 38){
+        constellationConnections.push({ from: constellationCurrentStar, to: nextIdx });
+        constellationCurrentStar = nextIdx;
+        targetStar.visited = true;
+        playStarChime(nextIdx);
+
+        if (navigator.vibrate){
+          navigator.vibrate(35);
+        }
+
+        if (nextIdx === constellationStars.length - 1){
+          constellationConnections.push({ from: nextIdx, to: 0 });
+          constellationConnected = true;
+          if (navigator.vibrate){
+            navigator.vibrate([60, 40, 100]);
+          }
+          if (winFooter) winFooter.hidden = false;
+          if (typeof fireworkAt === 'function'){
+            fireworkAt(rect.left + w / 2, rect.top + h / 2);
+          }
+        }
+      }
+    }
+  }
+
+  canvas.onpointerdown = (e) => {
+    isPointerDown = true;
+    try { canvas.setPointerCapture(e.pointerId); } catch(err){}
+    handlePointer(e.clientX, e.clientY);
+  };
+
+  canvas.onpointermove = (e) => {
+    if (isPointerDown){
+      handlePointer(e.clientX, e.clientY);
+    }
+  };
+
+  const endPointer = (e) => {
+    isPointerDown = false;
+    try { if (e && e.pointerId) canvas.releasePointerCapture(e.pointerId); } catch(err){}
+  };
+  canvas.onpointerup = endPointer;
+  canvas.onpointercancel = endPointer;
+}
+
+function setupConstellation(){
+  const closeBtn = $('constellationCloseBtn');
+  const backdrop = $('constellationBackdrop');
+  const modal = $('constellationModal');
+  if (!modal) return;
+
+  if (closeBtn){
+    closeBtn.addEventListener('click', () => closeConstellationModal(true));
+  }
+  if (backdrop){
+    backdrop.addEventListener('click', () => closeConstellationModal(true));
+  }
+
+  window.addEventListener('keydown', (e) => {
+    if (modal.classList.contains('is-open') && e.key === 'Escape'){
+      closeConstellationModal(true);
+    }
+  });
+
+  // Mobile swipe back gesture
+  let touchStartX = 0;
+  let touchStartY = 0;
+  modal.addEventListener('touchstart', (e) => {
+    if (e.touches && e.touches[0]){
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+    }
+  }, { passive: true });
+  modal.addEventListener('touchend', (e) => {
+    if (e.changedTouches && e.changedTouches[0]){
+      const dx = e.changedTouches[0].clientX - touchStartX;
+      const dy = e.changedTouches[0].clientY - touchStartY;
+      if (dx > 65 && Math.abs(dx) > Math.abs(dy) * 1.4){
+        closeConstellationModal(true);
+      }
+    }
+  }, { passive: true });
+}
+
+/* ============================================================
    SIZING + BOOT
    ============================================================ */
 let prevW = 0;
@@ -2810,6 +3429,8 @@ if (reduceMotion){
   initFireworksCanvas();
   setupLanterns();
   setupLetter();
+  setupGiftBox();
+  setupConstellation();
   drawFinal();
 } else {
   buildMotes();
@@ -2820,6 +3441,8 @@ if (reduceMotion){
   initFireworksCanvas();
   setupLanterns();
   setupLetter();
+  setupGiftBox();
+  setupConstellation();
   document.fonts && document.fonts.ready.then(() => { refreshRig(); setDraw(0); });
   enter();
   replay.addEventListener('click', resetAll);
