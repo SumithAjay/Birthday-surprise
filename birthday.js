@@ -1453,6 +1453,7 @@ function buildFilm(m){
       treeStart();
       // fade promptly so the growing tree is revealed with no white hold
       gsap.to(bloom, { autoAlpha: 0, duration: 1.15, ease: 'power2.out' });
+      filmTL = null;
     },
   });
 
@@ -1661,7 +1662,7 @@ function resetAll(){
   replay.classList.remove('is-shown'); replay.hidden = true;
   if (stardustField) stardustField.innerHTML = '';
   if (wishSparkles) wishSparkles.innerHTML = '';
-  if (filmTL){ filmTL.pause(0); }
+  if (filmTL){ filmTL.pause(0); filmTL = null; }
   gsap.set([flood, bloom], { autoAlpha: 0 });
   gsap.set(field, { autoAlpha: 0 });
   gsap.set(arrow, { opacity: 1, scaleY: 1 });
@@ -2617,6 +2618,7 @@ function setupLanterns(){
   const submitBtn = $('lanternSubmitBtn');
   if (submitBtn){
     submitBtn.addEventListener('click', () => {
+      if (customInput) customInput.blur();
       const customVal = customInput ? customInput.value.trim() : '';
       const wishToRelease = customVal || selectedLanternWish || 'Golden Sunshine & Smiles';
       closeLanternModal(true);
@@ -2757,22 +2759,42 @@ function setupLetter(){
 /* ============================================================
    SIZING + BOOT
    ============================================================ */
+let prevW = 0;
+let prevH = 0;
+
 function resize(){
+  const curW = canvas.clientWidth;
+  const curH = canvas.clientHeight;
+  const isInputFocused = document.activeElement && 
+    (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA');
+
+  // On mobile devices, virtual keyboard opening/closing changes height without changing width.
+  // Never re-randomize or disturb the canvas scene while user is typing in an input!
+  if (prevW > 0 && Math.abs(curW - prevW) < 10 && isInputFocused){
+    return;
+  }
+  prevW = curW;
+  prevH = curH;
+
   const isMobile = window.innerWidth <= 768;
   dpr = isMobile ? Math.min(window.devicePixelRatio || 1, 1.5) : Math.min(window.devicePixelRatio || 1, 2);
-  W = canvas.clientWidth; H = canvas.clientHeight;
+  W = curW; H = curH;
   canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   buildSprites();
   buildScene();
   if (reduceMotion){ drawFinal(); return; }
-  if (played && filmTL){
-    const at = filmTL.time(); const active = filmTL.isActive();
+
+  // Only recreate and re-sync filmTL if the intro film is actively playing
+  if (played && filmTL && filmTL.isActive()){
+    const at = filmTL.time();
     filmTL = buildFilm(shotGeom());
-    filmTL.pause(at);
-    if (active) filmTL.play(at);
-  } else {
+    filmTL.play(at);
+  } else if (!played){
     refreshRig(); setDraw(0);
+  } else {
+    // Act 4 (Celebration / Tree) is active: ensure film overlay layers stay completely hidden
+    gsap.set([flood, bloom, field], { autoAlpha: 0 });
   }
 }
 let resizeRAF = 0;
