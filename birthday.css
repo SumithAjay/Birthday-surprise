@@ -1785,21 +1785,21 @@ body{
 }
 
 .letter-close{
-  position:absolute;
-  top:-46px;
-  right:0;
-  width:36px;
-  height:36px;
+  position:fixed;
+  top:20px;
+  right:20px;
+  width:40px;
+  height:40px;
   border-radius:50%;
-  background:rgba(255, 248, 240, 0.95);
+  background:rgba(255, 250, 244, 0.95);
   border:1.5px solid rgba(180, 120, 60, 0.45);
   color:#6d2f14;
   display:flex;
   align-items:center;
   justify-content:center;
   cursor:pointer;
-  box-shadow:0 4px 14px rgba(0,0,0,0.25), 0 0 12px rgba(255, 210, 100, 0.2);
-  z-index:100;
+  box-shadow:0 4px 16px rgba(0,0,0,0.35), 0 0 12px rgba(255, 210, 100, 0.25);
+  z-index:10005;
   transition:transform .2s ease, background .2s ease, box-shadow .2s ease;
 }
 
@@ -1807,7 +1807,7 @@ body{
   transform:scale(1.1) rotate(90deg);
   background:#fff;
   border-color:rgba(180, 120, 60, 0.75);
-  box-shadow:0 6px 18px rgba(0,0,0,0.3), 0 0 16px rgba(255, 210, 100, 0.4);
+  box-shadow:0 6px 18px rgba(0,0,0,0.4), 0 0 16px rgba(255, 210, 100, 0.4);
 }
 
 /* 3D Envelope Presentation */
@@ -2053,24 +2053,27 @@ body{
 }
 
 .lantern-close{
-  position:absolute;
-  top:14px;
-  right:14px;
-  width:32px;
-  height:32px;
+  position:fixed;
+  top:20px;
+  right:20px;
+  width:40px;
+  height:40px;
   border-radius:50%;
-  background:rgba(255,255,255,0.85);
-  border:1px solid rgba(180, 120, 60, 0.3);
+  background:rgba(255, 250, 244, 0.95);
+  border:1.5px solid rgba(180, 120, 60, 0.45);
   color:#6c2e0b;
   display:flex;
   align-items:center;
   justify-content:center;
   cursor:pointer;
-  transition:transform .2s ease;
+  box-shadow:0 4px 16px rgba(0,0,0,0.35), 0 0 12px rgba(255, 210, 100, 0.25);
+  z-index:10005;
+  transition:transform .2s ease, background .2s ease;
 }
 
 .lantern-close:hover{
   transform:scale(1.1) rotate(90deg);
+  background:#fff;
 }
 
 .lantern-preview-box{
@@ -2262,7 +2265,7 @@ body{
   position:relative;
   z-index:2;
   width:100%;
-  max-width:440px;
+  max-width:380px;
   display:flex;
   flex-direction:column;
   align-items:center;
@@ -2273,26 +2276,27 @@ body{
   transform:scale(1) translateY(0);
 }
 .gift-close{
-  position:absolute;
-  top:-46px;
-  right:0;
-  width:36px;
-  height:36px;
+  position:fixed;
+  top:20px;
+  right:20px;
+  width:40px;
+  height:40px;
   border-radius:50%;
-  background:rgba(255, 248, 240, 0.95);
+  background:rgba(255, 250, 244, 0.95);
   border:1.5px solid rgba(180, 120, 60, 0.45);
   color:#6d2f14;
   display:flex;
   align-items:center;
   justify-content:center;
   cursor:pointer;
-  box-shadow:0 4px 14px rgba(0,0,0,0.25);
-  z-index:100;
-  transition:transform .2s ease, background .2s ease;
+  box-shadow:0 4px 16px rgba(0,0,0,0.35), 0 0 12px rgba(255, 210, 100, 0.25);
+  z-index:10005;
+  transition:transform .2s ease, background .2s ease, border-color .2s ease;
 }
 .gift-close:hover{
   transform:scale(1.1) rotate(90deg);
   background:#fff;
+  border-color:rgba(180, 120, 60, 0.8);
 }
 .gift-scene{
   position:relative;
@@ -2443,9 +2447,18 @@ body{
   will-change:transform, opacity;
   pointer-events:none;
 }
+.gift-box.is-opened{
+  width:min(90vw, 360px);
+  height:auto;
+  min-height:380px;
+  cursor:default;
+}
 .gift-card{
   position:relative;
   width:100%;
+  max-height:82vh;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
   background:radial-gradient(circle at 50% 25%, #fffdf8 0%, #faeed7 70%, #edd8b5 100%);
   border:2px solid rgba(212,150,50,0.6);
   border-radius:16px;
@@ -2583,21 +2596,21 @@ body{
   transform:scale(1) translateY(0);
 }
 .constellation-close{
-  position:absolute;
-  top:-46px;
-  right:0;
-  width:36px;
-  height:36px;
+  position:fixed;
+  top:20px;
+  right:20px;
+  width:40px;
+  height:40px;
   border-radius:50%;
-  background:rgba(255, 248, 240, 0.92);
-  border:1.5px solid rgba(180, 120, 220, 0.4);
+  background:rgba(255, 248, 240, 0.95);
+  border:1.5px solid rgba(180, 120, 220, 0.45);
   color:#431263;
   display:flex;
   align-items:center;
   justify-content:center;
   cursor:pointer;
-  box-shadow:0 4px 14px rgba(0,0,0,0.35);
-  z-index:100;
+  box-shadow:0 4px 16px rgba(0,0,0,0.4), 0 0 12px rgba(200, 150, 255, 0.3);
+  z-index:10005;
   transition:transform .2s ease, background .2s ease;
 }
 .constellation-close:hover{
@@ -2606,6 +2619,7 @@ body{
 }
 .constellation-header{
   margin-bottom:12px;
+  padding:0 50px;
 }
 .constellation-title{
   font:700 24px/1.2 "Cormorant Garamond", Georgia, serif;
@@ -2670,14 +2684,18 @@ body{
   .letter-parchment{ padding:26px 18px 22px; }
   .parchment-salutation{ font-size:26px !important; }
   .lantern-dialog{ padding:22px 18px 18px; }
+  .constellation-header{ padding:0 42px; }
+  .constellation-title{ font-size:21px; }
   .gift-close,
-  .constellation-close{
+  .constellation-close,
+  .letter-close,
+  .lantern-close{
     position:fixed;
     top:16px;
     right:16px;
     width:38px;
     height:38px;
     border-radius:50%;
-    z-index:10001;
+    z-index:10005;
   }
 }

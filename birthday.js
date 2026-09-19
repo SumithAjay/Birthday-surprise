@@ -1997,43 +1997,41 @@ function initCursorCanvas(){
   window.addEventListener('resize', resizeCursor);
   resizeCursor();
 
-  function spawnCursorParticles(x, y, count = 2, isFirefly = false){
-    const colors = ['#ffe17d', '#ffb703', '#fb8500', '#ffffff', '#ffd166'];
-    for (let i = 0; i < count; i++){
-      if (isFirefly){
-        cursorParticles.push({
-          x: x + rand(-8, 8),
-          y: y + rand(-8, 8),
-          vx: rand(-0.7, 0.7),
-          vy: rand(-1.2, -0.4),
-          phase: rand(0, Math.PI * 2),
-          size: rand(3.5, 6),
-          color: '#a7f3d0',
-          alpha: 1,
-          decay: rand(0.012, 0.024),
-          type: 'firefly',
-          rot: 0,
-          vrot: 0
-        });
-      } else {
-        const angle = rand(0, Math.PI * 2);
-        const spd = rand(0.5, 3.2);
-        const isStar = Math.random() < 0.35;
-        const isPetal = Math.random() < 0.15;
-        cursorParticles.push({
-          x: x + rand(-4, 4),
-          y: y + rand(-4, 4),
-          vx: Math.cos(angle) * spd,
-          vy: Math.sin(angle) * spd + rand(0.3, 1.2),
-          size: isPetal ? rand(4, 7) : (isStar ? rand(3, 5.5) : rand(1.5, 3.2)),
-          color: colors[Math.floor(Math.random() * colors.length)],
-          alpha: 1,
-          decay: rand(0.022, 0.045),
-          type: isPetal ? 'petal' : (isStar ? 'star' : 'spark'),
-          rot: rand(0, Math.PI * 2),
-          vrot: rand(-0.08, 0.08)
-        });
+  function isSuppressed(e){
+    if (document.body.classList.contains('modal-open')) return true;
+    const modalIds = ['galleryModal', 'letterModal', 'lanternModal', 'giftModal', 'constellationModal'];
+    for (let i = 0; i < modalIds.length; i++){
+      const m = $(modalIds[i]);
+      if (m && m.classList.contains('is-open')) return true;
+    }
+    if (e && e.target && e.target.closest){
+      if (e.target.closest('button, .cake-card, .cake__toast, .toast__btn, .wish__actions, .replay, .music-box-btn')){
+        return true;
       }
+    }
+    return false;
+  }
+
+  function spawnCursorParticles(x, y, count = 2){
+    const colors = ['#ffd700', '#ffbe0b', '#fca311', '#fff6d6', '#ffffff', '#ffb4c8'];
+    for (let i = 0; i < count; i++){
+      const angle = rand(0, Math.PI * 2);
+      const spd = rand(0.4, 2.6);
+      const isStar = Math.random() < 0.45;
+      const isPetal = Math.random() < 0.15;
+      cursorParticles.push({
+        x: x + rand(-4, 4),
+        y: y + rand(-4, 4),
+        vx: Math.cos(angle) * spd,
+        vy: Math.sin(angle) * spd - rand(0.3, 0.9),
+        size: isPetal ? rand(3.5, 5.5) : (isStar ? rand(2.5, 4.5) : rand(1.5, 2.8)),
+        color: colors[Math.floor(Math.random() * colors.length)],
+        alpha: 1,
+        decay: rand(0.018, 0.035),
+        type: isPetal ? 'petal' : (isStar ? 'star' : 'spark'),
+        rot: rand(0, Math.PI * 2),
+        vrot: rand(-0.06, 0.06)
+      });
     }
     if (!cursorRAF){
       cursorRAF = requestAnimationFrame(animateCursor);
@@ -2041,37 +2039,37 @@ function initCursorCanvas(){
   }
 
   function onPointerMove(e){
+    if (isSuppressed(e)) return;
     const isTouch = e.pointerType === 'touch';
     if (isTouch && !window.bdayDone) return; // In Act 1, don't spam particles while aiming bow
     const x = e.clientX !== undefined ? e.clientX : -1;
     const y = e.clientY !== undefined ? e.clientY : -1;
     if (x < 0 || y < 0) return;
 
-    const fireflyMode = isTouch && window.bdayDone;
-
     if (lastPointerPos.x >= 0){
       const dx = x - lastPointerPos.x;
       const dy = y - lastPointerPos.y;
       const dist = Math.hypot(dx, dy);
-      if (dist > 8){
-        const steps = Math.min(4, Math.floor(dist / 16));
+      if (dist > 10){
+        const steps = Math.min(3, Math.floor(dist / 18));
         for (let s = 1; s <= steps; s++){
           const t = s / steps;
-          spawnCursorParticles(lastPointerPos.x + dx * t, lastPointerPos.y + dy * t, fireflyMode ? 1 : 1, fireflyMode);
+          spawnCursorParticles(lastPointerPos.x + dx * t, lastPointerPos.y + dy * t, 1);
         }
       }
     }
     lastPointerPos = { x, y };
-    spawnCursorParticles(x, y, fireflyMode ? 2 : 1, fireflyMode);
+    spawnCursorParticles(x, y, 1);
   }
 
   function onPointerDown(e){
+    if (isSuppressed(e)) return;
     const isTouch = e.pointerType === 'touch';
+    if (isTouch && !window.bdayDone) return;
     const x = e.clientX !== undefined ? e.clientX : (e.touches && e.touches[0] ? e.touches[0].clientX : -1);
     const y = e.clientY !== undefined ? e.clientY : (e.touches && e.touches[0] ? e.touches[0].clientY : -1);
     if (x < 0 || y < 0) return;
-    const count = isTouch ? (window.bdayDone ? 6 : 4) : 18;
-    spawnCursorParticles(x, y, count, isTouch && window.bdayDone);
+    spawnCursorParticles(x, y, isTouch ? 4 : 10);
   }
 
   window.addEventListener('pointermove', onPointerMove, { passive: true });
@@ -2085,39 +2083,9 @@ function animateCursor(){
   for (let i = cursorParticles.length - 1; i >= 0; i--){
     const p = cursorParticles[i];
 
-    if (p.type === 'firefly'){
-      p.phase += 0.08;
-      p.x += Math.sin(p.phase) * 1.2;
-      p.y += p.vy;
-      p.alpha -= p.decay;
-      if (p.alpha <= 0){
-        cursorParticles.splice(i, 1);
-        continue;
-      }
-      cursorCtx.save();
-      cursorCtx.globalAlpha = Math.max(0, p.alpha);
-      const rad = p.size * 3.5;
-      const glowGrad = cursorCtx.createRadialGradient(p.x, p.y, 1, p.x, p.y, rad);
-      glowGrad.addColorStop(0, '#ffffff');
-      glowGrad.addColorStop(0.35, '#a7f3d0');
-      glowGrad.addColorStop(0.7, 'rgba(52, 211, 153, 0.45)');
-      glowGrad.addColorStop(1, 'rgba(52, 211, 153, 0)');
-      cursorCtx.fillStyle = glowGrad;
-      cursorCtx.beginPath();
-      cursorCtx.arc(p.x, p.y, rad, 0, Math.PI * 2);
-      cursorCtx.fill();
-
-      cursorCtx.fillStyle = '#6ee7b7';
-      cursorCtx.beginPath();
-      cursorCtx.arc(p.x, p.y, p.size * 0.75, 0, Math.PI * 2);
-      cursorCtx.fill();
-      cursorCtx.restore();
-      continue;
-    }
-
     p.x += p.vx;
     p.y += p.vy;
-    p.vy += 0.05;
+    p.vy += 0.03;
     p.vx *= 0.98;
     p.alpha -= p.decay;
     p.rot += p.vrot;
@@ -2134,13 +2102,13 @@ function animateCursor(){
     if (p.type === 'star'){
       const r = p.size;
       cursorCtx.fillStyle = p.color;
-      // Soft radial glow without costly shadowBlur
-      cursorCtx.globalAlpha = Math.max(0, p.alpha * 0.32);
+      cursorCtx.globalAlpha = Math.max(0, p.alpha * 0.35);
       cursorCtx.beginPath();
       cursorCtx.arc(0, 0, r * 1.8, 0, Math.PI * 2);
       cursorCtx.fill();
-      // Crisp star
-      cursorCtx.globalAlpha = Math.max(0, p.alpha);
+
+      cursorCtx.fillStyle = '#ffffff';
+      cursorCtx.globalAlpha = Math.max(0, p.alpha * 0.95);
       cursorCtx.beginPath();
       cursorCtx.moveTo(0, -r);
       cursorCtx.quadraticCurveTo(0, 0, r, 0);
@@ -2154,19 +2122,21 @@ function animateCursor(){
       cursorCtx.beginPath();
       cursorCtx.ellipse(0, 0, p.size * 0.9, p.size * 1.5, 0, 0, Math.PI * 2);
       cursorCtx.fill();
-      cursorCtx.globalAlpha = Math.max(0, p.alpha);
+      cursorCtx.fillStyle = '#fca311';
+      cursorCtx.globalAlpha = Math.max(0, p.alpha * 0.85);
       cursorCtx.beginPath();
       cursorCtx.ellipse(0, 0, p.size * 0.5, p.size, 0, 0, Math.PI * 2);
       cursorCtx.fill();
     } else {
       cursorCtx.fillStyle = p.color;
-      cursorCtx.globalAlpha = Math.max(0, p.alpha * 0.3);
+      cursorCtx.globalAlpha = Math.max(0, p.alpha * 0.32);
       cursorCtx.beginPath();
-      cursorCtx.arc(0, 0, p.size * 2.2, 0, Math.PI * 2);
+      cursorCtx.arc(0, 0, p.size * 2, 0, Math.PI * 2);
       cursorCtx.fill();
-      cursorCtx.globalAlpha = Math.max(0, p.alpha);
+      cursorCtx.fillStyle = '#ffffff';
+      cursorCtx.globalAlpha = Math.max(0, p.alpha * 0.9);
       cursorCtx.beginPath();
-      cursorCtx.arc(0, 0, p.size, 0, Math.PI * 2);
+      cursorCtx.arc(0, 0, p.size * 0.7, 0, Math.PI * 2);
       cursorCtx.fill();
     }
 
