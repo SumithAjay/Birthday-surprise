@@ -164,12 +164,12 @@ function shade(hex, amt){
    TREE ENGINE (Act 4) — canvas
    ============================================================ */
 const BLOSSOM = [
-  { c0: '#ffe1ec', c1: '#ff80aa' },
-  { c0: '#ffd0e0', c1: '#f4577f' },
-  { c0: '#ffc4d2', c1: '#e23b67' },
-  { c0: '#ffd9c4', c1: '#ff8a5b' },
-  { c0: '#ffeec2', c1: '#f6b13e' },
-  { c0: '#ffd2e6', c1: '#e84d9a' },
+  { c0: '#f5d0fe', c1: '#c084fc' }, // Lilac Mist
+  { c0: '#e9d5ff', c1: '#a855f7' }, // Royal Lavender
+  { c0: '#fae8ff', c1: '#d946ef' }, // Cosmic Orchid
+  { c0: '#ede9fe', c1: '#8b5cf6' }, // Electric Violet
+  { c0: '#e0f2fe', c1: '#38bdf8' }, // Aurora Cyan
+  { c0: '#fce7f3', c1: '#f472b6' }, // Starlight Rose
 ];
 
 /* timeline (seconds, relative to the tree's own start) — brisk */
@@ -376,7 +376,7 @@ function buildSprites(){
   SPR = { crisp: BLOSSOM.map((b) => makeBlossom(b, false)), soft: BLOSSOM.map((b) => makeBlossom(b, true)) };
   SUNFLOWER = { crisp: makeSunflowerHead(false), soft: makeSunflowerHead(true) };
   SUNFLOWER_PETAL = makeSunflowerPetal();
-  BOKEH = [makeBokeh('255,224,188'), makeBokeh('255,196,214'), makeBokeh('255,238,210')];
+  BOKEH = [makeBokeh('216,180,254'), makeBokeh('192,132,252'), makeBokeh('147,197,253')];
   SPARKLE = makeSparkle();
 }
 
@@ -420,8 +420,8 @@ const quad = (b, t) => { const m = 1 - t, a = m * m, k = 2 * m * t, d = t * t; r
 
 function barkGrad(x1, y1, x2, y2, depth){
   const g = ctx.createLinearGradient(x1, y1, x2, y2);
-  g.addColorStop(0, `hsl(348 26% ${26 + depth * 3}%)`);
-  g.addColorStop(1, `hsl(346 24% ${40 + depth * 5}%)`);
+  g.addColorStop(0, `hsl(278 28% ${24 + depth * 3}%)`);
+  g.addColorStop(1, `hsl(276 26% ${38 + depth * 5}%)`);
   return g;
 }
 
@@ -437,17 +437,17 @@ function buildScene(){
   groundY = H * (wide ? 0.93 : 0.94);
 
   bgGrad = ctx.createLinearGradient(0, 0, 0, H);
-  bgGrad.addColorStop(0, '#fff3e9');
-  bgGrad.addColorStop(0.46, '#ffe7d6');
-  bgGrad.addColorStop(0.78, '#fcd9c4');
-  bgGrad.addColorStop(1, '#f3c4b5');
+  bgGrad.addColorStop(0, '#130924');
+  bgGrad.addColorStop(0.46, '#241344');
+  bgGrad.addColorStop(0.78, '#32185c');
+  bgGrad.addColorStop(1, '#180a30');
   glowGrad = ctx.createRadialGradient(cx, cy, ry * 0.1, cx, cy, ry * 1.55);
-  glowGrad.addColorStop(0, 'rgba(255,219,170,0.6)');
-  glowGrad.addColorStop(0.5, 'rgba(255,170,150,0.2)');
-  glowGrad.addColorStop(1, 'rgba(255,170,150,0)');
+  glowGrad.addColorStop(0, 'rgba(192,132,252,0.65)');
+  glowGrad.addColorStop(0.5, 'rgba(147,51,234,0.25)');
+  glowGrad.addColorStop(1, 'rgba(147,51,234,0)');
   groundGrad = ctx.createRadialGradient(cx, H * 1.02, ry * 0.2, cx, H * 1.02, ry * 1.6);
-  groundGrad.addColorStop(0, 'rgba(255,205,165,0.5)');
-  groundGrad.addColorStop(1, 'rgba(255,205,165,0)');
+  groundGrad.addColorStop(0, 'rgba(192,132,252,0.4)');
+  groundGrad.addColorStop(1, 'rgba(192,132,252,0)');
 
   for (let i = 0; i < 11; i++){
     orbs.push({ x: rand(0, W), y: rand(0, H), r: rand(W * 0.05, W * 0.17), vy: rand(-6, -16), drift: rand(-0.3, 0.3), phase: rand(0, 6.28), alpha: rand(0.05, 0.13), sprite: pick(BOKEH) });
@@ -2137,7 +2137,7 @@ function launchRocket(startX, startY, targetX, targetY, type, onExplode){
 function createFireworkBurst(cx, cy, type = 'willow'){
   playFireworkSound(type === 'devaSri');
   const paletteGold = ['#fff275', '#ffb703', '#fb8500', '#ffffff', '#ffd166'];
-  const paletteRose = ['#ff4d6d', '#ff758f', '#ffb3c1', '#fff0f3', '#ff8fa3'];
+  const paletteRose = ['#c084fc', '#e879f9', '#a855f7', '#38bdf8', '#f472b6'];
   const isMobile = window.innerWidth <= 768;
 
   if (type === 'willow'){
@@ -2487,7 +2487,7 @@ function launchMidnightFireworks(){
 /* ============================================================
    FEATURE 2: FLOATING SKY LANTERNS SYSTEM
    ============================================================ */
-let selectedLanternWish = '🌻 Bright Smiles & Golden Sunshine';
+let selectedLanternWish = '💜 Bright Smiles & Sweet Dreams';
 
 function openLanternModal(){
   const modal = $('lanternModal');
@@ -2571,7 +2571,7 @@ function createSingleLantern(wishText, xPercent, isCompanion = false, delayMs = 
     if (!isCompanion){
       const tag = document.createElement('div');
       tag.className = 'sky-lantern__tag';
-      tag.textContent = '🌻 Deva Sri ✦ ' + wishText;
+      tag.textContent = '💜 Deva Sri ✦ ' + wishText;
       lantern.appendChild(tag);
     }
 
@@ -2702,7 +2702,7 @@ function setupLanterns(){
     submitBtn.addEventListener('click', () => {
       if (customInput) customInput.blur();
       const customVal = customInput ? customInput.value.trim() : '';
-      const wishToRelease = customVal || selectedLanternWish || 'Golden Sunshine & Smiles';
+      const wishToRelease = customVal || selectedLanternWish || 'Sweet Lavender Dreams & Joy';
       closeLanternModal(true);
       spawnSkyLantern(wishToRelease);
     });
@@ -2767,7 +2767,7 @@ function unsealLetter(){
     gsap.to(seal, {
       scale: 1.25,
       rotation: 12,
-      boxShadow: '0 0 35px #ffd066',
+      boxShadow: '0 0 35px #c084fc',
       duration: 0.2,
       onComplete: () => {
         gsap.to(seal, { scale: 0, opacity: 0, duration: 0.25 });
@@ -2839,9 +2839,10 @@ function setupLetter(){
 }
 
 /* ============================================================
-   FEATURE 6: 3D GOLDEN RIBBON GIFT BOX UNBOXING
+   FEATURE 6: 3D GOLDEN RIBBON GIFT BOX & MINION CELEBRATION
    ============================================================ */
 let giftBoxOpened = false;
+let minionTunePlaying = false;
 
 function openGiftModal(){
   const modal = $('giftModal');
@@ -2884,12 +2885,100 @@ function playGiftChimes(){
   });
 }
 
+function playMinionGiggle(){
+  initAudioContext();
+  if (!audioCtx) return;
+  const pitches = [620, 840, 1120, 780, 1250, 980, 1420];
+  pitches.forEach((freq, i) => {
+    setTimeout(() => {
+      if (!audioCtx) return;
+      const now = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, now);
+      osc.frequency.exponentialRampToValueAtTime(freq * 1.25, now + 0.06);
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.linearRampToValueAtTime(0.16, now + 0.015);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.09);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(now);
+      osc.stop(now + 0.1);
+    }, i * 55);
+  });
+}
+
+function playMinionBirthdayTune(){
+  initAudioContext();
+  if (!audioCtx || minionTunePlaying) return;
+  minionTunePlaying = true;
+
+  // Cheerful Happy Birthday melody (C5 octave)
+  const tune = [
+    { f: 523.25, d: 0.18, g: 0.04 }, // C5
+    { f: 523.25, d: 0.18, g: 0.04 }, // C5
+    { f: 587.33, d: 0.36, g: 0.06 }, // D5
+    { f: 523.25, d: 0.36, g: 0.06 }, // C5
+    { f: 698.46, d: 0.36, g: 0.06 }, // F5
+    { f: 659.25, d: 0.65, g: 0.12 }, // E5
+
+    { f: 523.25, d: 0.18, g: 0.04 }, // C5
+    { f: 523.25, d: 0.18, g: 0.04 }, // C5
+    { f: 587.33, d: 0.36, g: 0.06 }, // D5
+    { f: 523.25, d: 0.36, g: 0.06 }, // C5
+    { f: 783.99, d: 0.36, g: 0.06 }, // G5
+    { f: 698.46, d: 0.65, g: 0.12 }, // F5
+
+    { f: 523.25, d: 0.18, g: 0.04 }, // C5
+    { f: 523.25, d: 0.18, g: 0.04 }, // C5
+    { f: 1046.5, d: 0.36, g: 0.06 }, // C6
+    { f: 880.00, d: 0.36, g: 0.06 }, // A5
+    { f: 698.46, d: 0.36, g: 0.06 }, // F5
+    { f: 659.25, d: 0.36, g: 0.06 }, // E5
+    { f: 587.33, d: 0.55, g: 0.12 }, // D5
+
+    { f: 932.33, d: 0.22, g: 0.04 }, // Bb5
+    { f: 932.33, d: 0.22, g: 0.04 }, // Bb5
+    { f: 880.00, d: 0.36, g: 0.06 }, // A5
+    { f: 698.46, d: 0.36, g: 0.06 }, // F5
+    { f: 783.99, d: 0.36, g: 0.06 }, // G5
+    { f: 698.46, d: 0.80, g: 0.15 }  // F5
+  ];
+
+  let cumulativeTime = 0;
+  tune.forEach((note, index) => {
+    setTimeout(() => {
+      if (!audioCtx) return;
+      const now = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = index % 2 === 0 ? 'triangle' : 'sine';
+      osc.frequency.setValueAtTime(note.f, now);
+
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.linearRampToValueAtTime(0.2, now + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + note.d);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(now);
+      osc.stop(now + note.d + 0.02);
+
+      if (index === tune.length - 1){
+        setTimeout(() => { minionTunePlaying = false; }, 300);
+      }
+    }, cumulativeTime * 1000);
+    cumulativeTime += note.d + note.g;
+  });
+}
+
 function spawnGiftBurst(){
   const burstContainer = $('giftBurst');
   if (!burstContainer) return;
   burstContainer.innerHTML = '';
-  const symbols = ['🦋', '🌻', '✨', '💛', '🌟', '💖', '👑'];
-  const count = 32;
+  const symbols = ['🦋', '✨', '💜', '🌟', '💖', '👑', '🎉', '🎈'];
+  const count = 36;
   for (let i = 0; i < count; i++){
     const particle = document.createElement('div');
     particle.className = 'gift-burst-item';
@@ -2913,7 +3002,7 @@ function spawnGiftBurst(){
       transition: transform ${dur}s cubic-bezier(0.1, 0.9, 0.2, 1), opacity ${dur}s ease-out;
       opacity: 1;
       will-change: transform, opacity;
-      filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.7));
+      filter: drop-shadow(0 0 8px rgba(192, 132, 252, 0.8));
     `;
     burstContainer.appendChild(particle);
 
@@ -2929,6 +3018,74 @@ function spawnGiftBurst(){
     const cy = rect.top + rect.height / 2;
     fireworkAt(cx - 60, cy - 80);
     setTimeout(() => fireworkAt(cx + 60, cy - 100), 200);
+  }
+}
+
+function spawnBananaBurst(){
+  const stage = $('minionStage');
+  if (!stage) return;
+  const emojis = ['🎉', '💜', '✨', '💖', '🌟', '🎂', '🎈'];
+  for (let i = 0; i < 18; i++){
+    const p = document.createElement('span');
+    p.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+    p.style.cssText = `
+      position:absolute;
+      left:50%;
+      top:50%;
+      font-size:${16 + Math.random() * 16}px;
+      pointer-events:none;
+      z-index:99;
+      transform:translate(-50%, -50%) scale(0.5);
+      transition:all 1s cubic-bezier(0.15, 0.9, 0.25, 1);
+      opacity:1;
+      filter:drop-shadow(0 2px 6px rgba(0,0,0,0.2));
+    `;
+    stage.appendChild(p);
+
+    const angle = (Math.PI * 2 * i) / 18 + (Math.random() - 0.5) * 0.4;
+    const dist = 60 + Math.random() * 80;
+    const tx = Math.cos(angle) * dist;
+    const ty = Math.sin(angle) * dist - 30;
+    const rot = (Math.random() - 0.5) * 360;
+
+    requestAnimationFrame(() => {
+      p.style.transform = `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px)) scale(1.1) rotate(${rot}deg)`;
+      p.style.opacity = '0';
+    });
+
+    setTimeout(() => p.remove(), 1100);
+  }
+}
+
+function triggerMinionCheer(){
+  const stage = $('minionStage');
+  if (stage){
+    stage.classList.remove('is-cheering');
+    void stage.offsetWidth; // re-flow
+    stage.classList.add('is-cheering');
+    setTimeout(() => stage.classList.remove('is-cheering'), 900);
+  }
+  playMinionGiggle();
+  spawnBananaBurst();
+  if (navigator.vibrate) navigator.vibrate([40, 30, 60]);
+}
+
+function replayGiftBox(){
+  const giftBox = $('giftBox');
+  if (!giftBox) return;
+  giftBoxOpened = false;
+  giftBox.classList.remove('is-opened');
+  
+  // Reset tabs to Minion view
+  const tabMinion = $('tabMinionBtn');
+  const tabPass = $('tabPassBtn');
+  const viewMinion = $('viewMinion');
+  const viewPass = $('viewPass');
+  if (tabMinion && tabPass && viewMinion && viewPass){
+    tabMinion.classList.add('is-active');
+    tabPass.classList.remove('is-active');
+    viewMinion.classList.add('is-active');
+    viewPass.classList.remove('is-active');
   }
 }
 
@@ -2971,21 +3128,31 @@ function setupGiftBox(){
     }
   }, { passive: true });
 
-  if (giftBox){
-    function unbox(){
-      if (giftBoxOpened) return;
-      giftBoxOpened = true;
-      giftBox.classList.add('is-opened');
+  // Unbox handler
+  function unbox(){
+    if (giftBoxOpened) return;
+    giftBoxOpened = true;
+    giftBox.classList.add('is-opened');
 
-      if (navigator.vibrate){
-        navigator.vibrate([40, 60, 80]);
-      }
-
-      playGiftChimes();
-      spawnGiftBurst();
+    if (navigator.vibrate){
+      navigator.vibrate([40, 60, 80]);
     }
 
-    giftBox.addEventListener('click', unbox);
+    playGiftChimes();
+    spawnGiftBurst();
+
+    setTimeout(() => {
+      playMinionGiggle();
+      spawnBananaBurst();
+    }, 450);
+  }
+
+  if (giftBox){
+    giftBox.addEventListener('click', (e) => {
+      // Don't unbox if clicking inside the interactive card once opened
+      if (giftBoxOpened) return;
+      unbox();
+    });
 
     let boxTouchY = 0;
     giftBox.addEventListener('touchstart', (e) => {
@@ -2995,6 +3162,7 @@ function setupGiftBox(){
     }, { passive: true });
 
     giftBox.addEventListener('touchend', (e) => {
+      if (giftBoxOpened) return;
       if (e.changedTouches && e.changedTouches[0]){
         const diffY = boxTouchY - e.changedTouches[0].clientY;
         if (diffY > 30 || Math.abs(boxTouchY - e.changedTouches[0].clientY) < 15){
@@ -3002,6 +3170,45 @@ function setupGiftBox(){
         }
       }
     }, { passive: true });
+  }
+
+  // Minion Interactive Triggers
+  const minionStage = $('minionStage');
+  if (minionStage){
+    minionStage.addEventListener('click', (e) => {
+      e.stopPropagation();
+      triggerMinionCheer();
+    });
+    minionStage.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' '){
+        e.preventDefault();
+        triggerMinionCheer();
+      }
+    });
+  }
+
+  // Tabs: Switch between Minion Cartoon and Golden Pass
+  const tabMinion = $('tabMinionBtn');
+  const tabPass = $('tabPassBtn');
+  const viewMinion = $('viewMinion');
+  const viewPass = $('viewPass');
+
+  if (tabMinion && tabPass && viewMinion && viewPass){
+    tabMinion.addEventListener('click', (e) => {
+      e.stopPropagation();
+      tabMinion.classList.add('is-active');
+      tabPass.classList.remove('is-active');
+      viewMinion.classList.add('is-active');
+      viewPass.classList.remove('is-active');
+    });
+
+    tabPass.addEventListener('click', (e) => {
+      e.stopPropagation();
+      tabPass.classList.add('is-active');
+      tabMinion.classList.remove('is-active');
+      viewPass.classList.add('is-active');
+      viewMinion.classList.remove('is-active');
+    });
   }
 }
 
