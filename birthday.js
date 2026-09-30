@@ -431,8 +431,9 @@ function buildScene(){
 
   const wide = W / H > 1.2;
   cx = W * (wide ? 0.57 : 0.5);
-  cy = H * (wide ? 0.37 : 0.40);
-  ry = Math.min(H * (wide ? 0.33 : 0.28), W * 0.31);
+  // On mobile portrait (tall screens), place heart canopy in the vertical center so it never overlaps the wish banner
+  cy = H * (wide ? 0.37 : (H < 720 ? 0.51 : 0.49));
+  ry = Math.min(H * (wide ? 0.33 : 0.21), W * (wide ? 0.31 : 0.28));
   rx = ry * 1.16;
   groundY = H * (wide ? 0.93 : 0.94);
 
