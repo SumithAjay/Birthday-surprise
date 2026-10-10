@@ -1955,14 +1955,26 @@ body{
   box-shadow:0 25px 60px rgba(0,0,0,0.6), 0 0 40px rgba(192, 132, 252, 0.3);
   overflow-y:auto;
   max-height:82vh;
+  scrollbar-width:thin;
+  scrollbar-color:rgba(192, 132, 252, 0.45) transparent;
 }
 
-.parchment-border{
-  position:absolute;
-  inset:8px;
-  border:1px solid rgba(192, 132, 252, 0.35);
+.letter-parchment::-webkit-scrollbar{
+  width:6px;
+}
+
+.letter-parchment::-webkit-scrollbar-track{
+  background:transparent;
+  margin:10px 0;
+}
+
+.letter-parchment::-webkit-scrollbar-thumb{
+  background:rgba(192, 132, 252, 0.4);
   border-radius:8px;
-  pointer-events:none;
+}
+
+.letter-parchment::-webkit-scrollbar-thumb:hover{
+  background:rgba(168, 85, 247, 0.65);
 }
 
 .parchment-stamp{
