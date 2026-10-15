@@ -874,6 +874,7 @@ function spawnConfetti(){
 }
 
 function blowCandles(){
+  if (!cakeWrapper || !cakeWrapper.classList.contains('is-in')) return;
   if (cakeBlown){
     openGallery(0);
     return;
@@ -898,15 +899,15 @@ function setupCake(){
   });
 
   const tMem = $('toastMemoriesBtn');
-  if (tMem) tMem.addEventListener('click', (e) => { e.stopPropagation(); openGallery(0); });
+  if (tMem) tMem.addEventListener('click', (e) => { e.stopPropagation(); if (!cakeBlown) return; openGallery(0); });
   const tGift = $('toastGiftBtn');
-  if (tGift) tGift.addEventListener('click', (e) => { e.stopPropagation(); openGiftModal(); });
+  if (tGift) tGift.addEventListener('click', (e) => { e.stopPropagation(); if (!cakeBlown) return; openGiftModal(); });
   const tLan = $('toastLanternBtn');
-  if (tLan) tLan.addEventListener('click', (e) => { e.stopPropagation(); openLanternModal(); });
+  if (tLan) tLan.addEventListener('click', (e) => { e.stopPropagation(); if (!cakeBlown) return; openLanternModal(); });
   const tStars = $('toastStarsBtn');
-  if (tStars) tStars.addEventListener('click', (e) => { e.stopPropagation(); openConstellationModal(); });
+  if (tStars) tStars.addEventListener('click', (e) => { e.stopPropagation(); if (!cakeBlown) return; openConstellationModal(); });
   const tLet = $('toastLetterBtn');
-  if (tLet) tLet.addEventListener('click', (e) => { e.stopPropagation(); openLetterModal(); });
+  if (tLet) tLet.addEventListener('click', (e) => { e.stopPropagation(); if (!cakeBlown) return; openLetterModal(); });
 }
 
 /* ============================================================
@@ -1143,6 +1144,7 @@ function closeGallery(shouldPopHistory = true){
 
 function setupGallery(){
   const triggerOpen = (e) => {
+    if (!cakeBlown) return;
     if (e) {
       e.preventDefault();
       e.stopPropagation();
@@ -1152,7 +1154,10 @@ function setupGallery(){
 
   if (toastMemoriesBtn) {
     toastMemoriesBtn.addEventListener('click', triggerOpen);
-    toastMemoriesBtn.addEventListener('pointerdown', (e) => e.stopPropagation());
+    toastMemoriesBtn.addEventListener('pointerdown', (e) => {
+      if (!cakeBlown) return;
+      e.stopPropagation();
+    });
   }
   const openMemBtn = $('openMemoriesBtn');
   if (openMemBtn) {
